@@ -8,6 +8,8 @@
 import javax.swing.JFrame;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
 
 public class DungeonQuest{
    
@@ -19,7 +21,7 @@ public class DungeonQuest{
    
    //--Settings--//
    
-   public static int numPlayer;           //Number of players (1 to 4)
+	public static int numPlayers;				//Number of players (1 to 4) selected by user(s)
    public static int screenFactor;        /* 
                                              Screen (and frame) resizing factor. Frame will always
                                              be in 80:50 ratio, but overall size will change. Ranges
@@ -33,17 +35,17 @@ public class DungeonQuest{
       //--Initialize--//
       
       screenFactor = 10;
-      numPlayer = 0;
+		numPlayers = -1;
       
-      f = new JFrame("Dungeon Quest || The Treasure Awaits...");
+      f = new JFrame("Dungeon Quest || Begin your Quest...");
       f.setSize(80 * screenFactor, 50 * screenFactor);
       f.setLocation(20, 20);
       f.setResizable(false);//Frame size will be changed by (+) and (-) keys
       f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      f.addMouseListener(new mouseListen());
       f.addKeyListener(new keyListen());
       
       m = new Menu();
-      p = new Panel();
       
       f.setContentPane(m);//First display menu
       f.setVisible(true);
@@ -52,9 +54,18 @@ public class DungeonQuest{
       
       //--Menu open--//
       
-      //Keep doing nothing while numPlayer has not been selected by player(s)
-      while(numPlayer == 0){}
+      //Keep doing nothing while settings have not been selected by player(s)
+      while(numPlayers == -1){}
       
+		//Initialize game panel and set it as frame contents
+		p = new Panel();
+		m = null;
+		
+      f.remove(f.getContentPane());
+      f.setContentPane(p);
+      f.validate();
+      f.repaint();
+		
       //--The GAME--//
       
       while(true){
@@ -64,10 +75,27 @@ public class DungeonQuest{
    
    //--Static Utility Classes--//
    
+	//pre:
+	//post: Returns file directory for "Dungeon Quest" folder
+	public static String getDirectory(){
+		//URL in String representation, leading directly to this java file
+		String dir = (DungeonQuest.class.getResource("DungeonQuest.java")).toString();
+		//Crop dir to lead to "Dungeon Quest" folder
+		dir = dir.substring(5, dir.length() - 25);
+		return dir.replaceAll("%20", " ");//Finally replace all "%20" URL space symbols with real spaces
+	}
+	
    //pre: name is valid image name in "Resources" folder
    //post: Returns BufferedImage found with title name in "Resources" folder
    public static BufferedImage loadImage(String name){
-      return null;
+      try{
+			name = getDirectory() + "Resources/" + name;//Change name to image's directory
+			return ImageIO.read(new File(name));
+		}catch(Exception e){
+			System.out.println("Could not load " + name + ". Please make sure it exists in \"Resources\" folder");
+			System.exit(1);
+		}
+		return null;
    }
    
    //pre: 
@@ -87,7 +115,12 @@ public class DungeonQuest{
       
       public void mouseExited(MouseEvent e){}
       
-      public void mouseClicked(MouseEvent e){}
+      public void mouseClicked(MouseEvent e){
+			if(m != null)	//If menu open
+				m.mouseClick(e.getX() - 10, e.getY() - 30);
+			//else				//If game board panel open
+				//p.mouseClick(e.getX() - 10, e.getY() - 30);
+		}
       
       public void mouseReleased(MouseEvent e){}
       
@@ -100,10 +133,9 @@ public class DungeonQuest{
       public void keyTyped(KeyEvent e){}
       
       public void keyPressed(KeyEvent e){
-         //Screen resizing
          if(m == null){//Only resize if menu is closed (we are in actual game)
             if(e.getKeyCode() == KeyEvent.VK_EQUALS){          //Increase frame size factor
-               if(screenFactor < 15){
+               if(screenFactor < 20){
                   screenFactor++;
                   f.setSize(80 * screenFactor, 50 * screenFactor);
                }
@@ -115,8 +147,9 @@ public class DungeonQuest{
                }
                return;
             }
-         }
-         p.keyPressed(e.getKeyCode());
+         }else if(p != null){
+         	p.keyPressed(e.getKeyCode());
+			}
       }
    }
 }

@@ -9,7 +9,9 @@ public class Hero{
                      agility,             //Hero's spped ability to react quickly
                      armor,               //Hero's ability to prevent or ignore wounds
                      luck;                //A Hero's good fortune or blessing
-   private final String specialAbility,   //'Nuff said
+							
+   private final String name,					//Name of this Hero
+								specialAbility,   //'Nuff said
                         flavorText;       //A bit of the Hero's personality
    
    private int r,                         //Row position on board

@@ -1,5 +1,7 @@
 //A player in the game (of LIFE!). Basically a player.
 
+import java.awt.Graphics;
+
 public class Hero{
 
    //Statistics about a hero (all information taken from rule book)
@@ -16,6 +18,9 @@ public class Hero{
    
    private int r,                         //Row position on board
                c;                         //Column position on board
+               
+   private int x,                         //x position on screen (in panel)
+               y;                         //y position on screen (in panel)
    
    //--Initialize--//
    
@@ -29,11 +34,19 @@ public class Hero{
       specialAbility = "";
       flavorText = "";
    }
-	/*
+	
 	public Hero(String name){
-		Read from file directly and set values based on file info
-	}
-   */
+      this.name = "";
+      lifeValue = 1;
+      strength = 0;
+      agility = 0;
+      armor = 0;
+      luck = 0;
+		name = "";
+      specialAbility = "";
+      flavorText = "";
+   }
+   
    //pre: stats.length == 5, text.length == 2
    //ARGS: stats is all numerical statistics. text contains all text.
    public Hero(int[] stats, String[] text){
@@ -46,6 +59,12 @@ public class Hero{
       specialAbility = 	text[0];
 		name = 				text[1];
       flavorText = 		text[2];
+   }
+   
+   //--Graphics--//
+   
+   public void draw(Graphics g){
+   
    }
    
    //--Access--//
@@ -99,6 +118,14 @@ public class Hero{
    }
    
    //--Mutate--//
+   
+   //pre: 0 <= r < 13, 0 <= c < 9
+   //post: Sets Hero position to (r, c), also sets x and y
+   public void setPosition(int r, int c){
+      this.r = r;
+      this.c = c;
+      
+   }
    
    //pre: healthDeduction > 0
    //post: Reduces health value by healthDeduction

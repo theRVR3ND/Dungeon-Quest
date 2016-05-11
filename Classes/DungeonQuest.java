@@ -25,7 +25,7 @@ public class DungeonQuest{
    public static int screenFactor;        /* 
                                              Screen (and frame) resizing factor. Frame will always
                                              be in 80:50 ratio, but overall size will change. Ranges
-                                             from 10 to 20.
+                                             from 10 to 15.
                                           */
    
    //--Main--//
@@ -87,8 +87,8 @@ public class DungeonQuest{
 		return dir.replaceAll("%20", " ");//Finally replace all "%20" URL space symbols with real spaces
 	}
 	
-   //pre: name is valid image name in "Resources" folder
-   //post: Returns BufferedImage found with title name in "Resources" folder
+   //pre: name is valid image directory in "Resources" folder
+   //post: Returns BufferedImage found with directory in "Resources" folder
    public static BufferedImage loadImage(String name){
       try{
 			name = getDirectory() + "Resources/" + name;//Change name to image's directory
@@ -119,8 +119,7 @@ public class DungeonQuest{
       
       public void mouseClicked(MouseEvent e){
 			if(m != null)			//If menu open
-				m.mouseClick((int)((e.getX() - 10) / (screenFactor / 10.0)), 
-								 (int)((e.getY() - 30) / (screenFactor / 10.0)));
+				m.mouseClick(e.getX() - 10, e.getY() - 30);
 			else if(p != null)	//If game board panel open
 				p.mouseClick(e.getX() - 10, e.getY() - 30);
 		}
@@ -136,9 +135,9 @@ public class DungeonQuest{
       public void keyTyped(KeyEvent e){}
       
       public void keyPressed(KeyEvent e){
-			if(m != null){//Only change frame size if in actual game play
+			if(m == null){//Only change frame size if in actual game play
             if(e.getKeyCode() == KeyEvent.VK_EQUALS){          //Increase frame size factor
-               if(screenFactor < 20){
+               if(screenFactor < 15){
                   screenFactor++;
                   f.setSize(80 * screenFactor, 50 * screenFactor);
                }

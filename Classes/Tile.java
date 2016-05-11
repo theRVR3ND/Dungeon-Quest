@@ -14,22 +14,21 @@ public class Tile{
 												*/
 
 	//--Initialize--//
-
-	public Tile(String[] sides, int rotation){
-		this.sides = sides;
-		this.rotation = rotation;
-		//if(sides[0].equals("HOLE"))
-			img = DungeonQuest.loadImage("Dungeons/BottomlessPit.png");
+   
+   /*
+      ARGS: tileType is name of folder in DungeonQuest -> Resources -> Board -> Tiles folder.
+            rotation is rotation of tile.
+   */
+	public Tile(String tileType, int rotation){
+      img = DungeonQuest.loadImage("Board/Tiles/" + tileType + "/img.png");
+      this.rotation = rotation;
+      //Figure out how many action buttons are possible for sides and create buttons based on it
+      int numPassable = 0;
+      //for(
+      buttons = new Button[1];
 	}
 	
 	//--Access--//
-	
-	public boolean isPassable(String direction){
-		switch(direction){
-			case(""): return false;
-		}
-		return false;
-	}
 	
 	//--Mutate--//
 	

@@ -6,21 +6,32 @@ import java.awt.image.BufferedImage;
 
 public class Menu extends JPanel{
 	
-	private final BufferedImage menuImg;	//Background image of menu
-	private Button[] buttons;					/*
-															All buttons in screen. Index 0 - 3 are for
-															each player's active or not button. Index
-															4 is for the "Begin!" buttons
-														*/
+	private final BufferedImage menuImg;	         //Background image of menu
+   private String[] heroNames = {"Challara",       //All hero's names
+                                 "Gherinn", 
+                                 "Hugo", 
+                                 "Krutzbeck", 
+                                 "Lindel", 
+                                 "Tatianna"};
+   private int[] charInd;                          /*
+                                                      Indexes of character (in heroNames) assigned
+                                                      to each player button
+                                                   */
+	private Button[] buttons;					         /*
+															         All buttons in screen. Index 0 - 3 are for
+															         each player's active or not button. Index
+															         4 is for the "Begin!" buttons
+														         */
 	
    //--Initialize--//
 
    public Menu(){
 		menuImg = DungeonQuest.loadImage("Menu/MenuScreen.png");
 	
-		//All button images are in one file
-		BufferedImage buttonImgs = DungeonQuest.loadImage("Menu/Buttons.png");
 		//Create all buttons
+		   //All button images are in one file
+		BufferedImage buttonImgs = DungeonQuest.loadImage("Menu/Buttons.png");
+      
 		buttons = new Button[5];
 			//Create player selection buttons
 		for(int i = 0; i < 4; i++)
@@ -30,6 +41,23 @@ public class Menu extends JPanel{
 											60 + 140 * i, 210);
 			//Create start game button
 		buttons[4] = new Button(buttonImgs.getSubimage(520, 0, 130, 60), 650, 400);
+      
+      //Assign random hero to each player button (without duplication)
+      charInd = new int[4];
+      for(int i = 0; i < 4; i++){
+         do{
+            charInd[i] = (int)(Math.random() * heroNames.length);
+         }while(heroNames[charInd[i]] == null);
+         heroNames[charInd[i]] = null;//Make sure we don't use same player again
+      }
+      
+      //Reset heroNames for later hero image loading
+      heroNames[0] = "Challara";
+      heroNames[1] = "Gherinn";
+      heroNames[2] = "Hugo";
+      heroNames[3] = "Krutzbeck"; 
+      heroNames[4] = "Lindel"; 
+      heroNames[5] = "Tatianna";
    }
    
    //--Graphics--//
@@ -42,8 +70,11 @@ public class Menu extends JPanel{
 		//By default draw four player selection buttons
 		for(int i = 0; i < 4; i++){
 			buttons[i].draw(g);
-			//Draw random hero underneath button
-			
+         if(buttons[i].isDown()){//If button is down, draw hero assigned to it underneath
+            String name = heroNames[charInd[i]];
+            g.drawImage(DungeonQuest.loadImage("Heros/" + name + "/" + name + ".png"), 
+                        buttons[i].getX(), buttons[i].getY() + 30, null);
+         }
 		}
 		//Draw start game button, if at least one of the player selection buttons is down
 		for(int i = 0; i < 4; i++)
@@ -69,6 +100,16 @@ public class Menu extends JPanel{
 				for(int i = 0; i < 4; i++)
 					if(buttons[i].isDown())
 						numPlayers++;
+            
+            //Create game panel
+            String[] names = new String[numPlayers];//List of all names of heros being used during game
+            int namesInd = 0;
+            for(int i = 0; i < 4; i++){
+               if(buttons[i].isDown())
+                  names[namesInd++] = heroNames[charInd[i]];
+            }
+            DungeonQuest.p = new Panel(names);//Create panel with names of all heros being used
+            
 				DungeonQuest.numPlayers = numPlayers;
 			}
 		//Check for click on player selection buttons

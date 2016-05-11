@@ -44,13 +44,12 @@ public class Button{
 	
 	//--Access--//
 	
-	public boolean checkClick(int x, int y){
-		if(this.x <= x && this.x + img.getWidth() >= x &&
-			this.y <= y && this.y + img.getHeight() >= y){
-			down = !down;//Change state of button
-			return true;
-		}else
-			return false;
+	public int getX(){
+		return x;
+	}
+	
+	public int getY(){
+		return y;
 	}
 	
 	public boolean isDown(){
@@ -65,5 +64,14 @@ public class Button{
 			mouseOver = true;
 		else
 			mouseOver = false;
+	}
+	
+	public boolean checkClick(int x, int y){
+		if(this.x <= x && this.x + img.getWidth() >= x &&
+			this.y <= y && this.y + img.getHeight() >= y){
+			down = !down;//Change state of button
+			return true;
+		}else
+			return false;
 	}
 }

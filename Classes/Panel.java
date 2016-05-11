@@ -2,6 +2,7 @@
 
 import javax.swing.JPanel;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 
 public class Panel extends JPanel{
 	
@@ -11,14 +12,17 @@ public class Panel extends JPanel{
 	
    //--Initialize--//
 
-   public Panel(){
-		players = new Hero[DungeonQuest.numPlayers];
+   public Panel(Hero[] playersIn){
+		grid = new SparseMatrix<Tile>(13, 9);
+		players = playersIn;
 		for(int i = 0; i < players.length; i++){
 			//Randomly find locations for each Hero in each corner of grid
 			players[i] = new Hero();
 		}
    }
    
+	//--Access--//
+	
    //--Mutate--//
    
    //pre: k is a valid key code
@@ -26,4 +30,10 @@ public class Panel extends JPanel{
    public void keyPressed(int k){
    
    }
+	
+	//pre: 
+	//post: Determines which tile on board was clicked (if any) and passes on click coordinates to tile.
+	public void mouseClick(int x, int y){
+	
+	}
 }

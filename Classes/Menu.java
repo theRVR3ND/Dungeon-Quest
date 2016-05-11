@@ -16,10 +16,10 @@ public class Menu extends JPanel{
    //--Initialize--//
 
    public Menu(){
-		menuImg = DungeonQuest.loadImage("MenuScreen.png");
+		menuImg = DungeonQuest.loadImage("Menu/MenuScreen.png");
 	
 		//All button images are in one file
-		BufferedImage buttonImgs = DungeonQuest.loadImage("Buttons.png");
+		BufferedImage buttonImgs = DungeonQuest.loadImage("Menu/Buttons.png");
 		//Create all buttons
 		buttons = new Button[5];
 			//Create player selection buttons
@@ -40,16 +40,20 @@ public class Menu extends JPanel{
 		//Draw background
 		g.drawImage(menuImg, 0, 0, null);
 		//By default draw four player selection buttons
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < 4; i++){
 			buttons[i].draw(g);
+			//Draw random hero underneath button
+			
+		}
 		//Draw start game button, if at least one of the player selection buttons is down
 		for(int i = 0; i < 4; i++)
 			if(buttons[i].isDown()){
 				buttons[4].draw(g);
 				break;//Make sure we don't just draw same button multiple times
 			}
+		
       //------//
-      repaint(0, 0, 0, 800, 500);
+      repaint(0, 0, 0, 80 * DungeonQuest.screenFactor, 50 * DungeonQuest.screenFactor);
    }
    
    //--Access--//

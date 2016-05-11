@@ -1,4 +1,4 @@
-//A player in the game (of LIFE!). Basically a player card.
+//A player in the game (of LIFE!). Basically a player.
 
 public class Hero{
 
@@ -25,20 +25,27 @@ public class Hero{
       agility = 0;
       armor = 0;
       luck = 0;
+		name = "";
       specialAbility = "";
       flavorText = "";
    }
-   
+	/*
+	public Hero(String name){
+		Read from file directly and set values based on file info
+	}
+   */
    //pre: stats.length == 5, text.length == 2
    //ARGS: stats is all numerical statistics. text contains all text.
    public Hero(int[] stats, String[] text){
-      lifeValue = stats[0];
-      strength = stats[1];
-      agility = stats[2];
-      armor = stats[3];
-      luck = stats[4];
-      specialAbility = text[0];
-      flavorText = "";
+      lifeValue =	stats[0];
+      strength = 	stats[1];
+      agility = 	stats[2];
+      armor = 		stats[3];
+      luck = 		stats[4];
+		
+      specialAbility = 	text[0];
+		name = 				text[1];
+      flavorText = 		text[2];
    }
    
    //--Access--//
@@ -48,6 +55,12 @@ public class Hero{
    public int getLifeValue(){
       return lifeValue;
    }
+	
+	//pre:
+	//post: Returns true if live value > 0
+	public boolean isAlive(){
+		return lifeValue != 0;
+	}
    
    //pre: 
    //post: Returns strength of Hero

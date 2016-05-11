@@ -55,12 +55,14 @@ public class DungeonQuest{
       //--Menu open--//
       
       //Keep doing nothing while settings have not been selected by player(s)
-      while(numPlayers == -1){}
-      
-		//Initialize game panel and set it as frame contents
-		p = new Panel();
+      while(numPlayers == -1){
+			System.out.print("");
+		}
+		
+		//Recycle menu. p is initialized in menu.
 		m = null;
 		
+		f.setTitle("Dungeon Quest || The Journey");
       f.remove(f.getContentPane());
       f.setContentPane(p);
       f.validate();
@@ -116,10 +118,11 @@ public class DungeonQuest{
       public void mouseExited(MouseEvent e){}
       
       public void mouseClicked(MouseEvent e){
-			if(m != null)	//If menu open
-				m.mouseClick(e.getX() - 10, e.getY() - 30);
-			//else				//If game board panel open
-				//p.mouseClick(e.getX() - 10, e.getY() - 30);
+			if(m != null)			//If menu open
+				m.mouseClick((int)((e.getX() - 10) / (screenFactor / 10.0)), 
+								 (int)((e.getY() - 30) / (screenFactor / 10.0)));
+			else if(p != null)	//If game board panel open
+				p.mouseClick(e.getX() - 10, e.getY() - 30);
 		}
       
       public void mouseReleased(MouseEvent e){}
@@ -133,7 +136,7 @@ public class DungeonQuest{
       public void keyTyped(KeyEvent e){}
       
       public void keyPressed(KeyEvent e){
-         if(m == null){//Only resize if menu is closed (we are in actual game)
+			if(m != null){//Only change frame size if in actual game play
             if(e.getKeyCode() == KeyEvent.VK_EQUALS){          //Increase frame size factor
                if(screenFactor < 20){
                   screenFactor++;
@@ -147,9 +150,10 @@ public class DungeonQuest{
                }
                return;
             }
-         }else if(p != null){
+         }
+			if(p != null)
          	p.keyPressed(e.getKeyCode());
-			}
+			
       }
    }
 }

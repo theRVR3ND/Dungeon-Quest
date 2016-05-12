@@ -14,7 +14,7 @@ public class Panel extends JPanel{
    //--Initialize--//
 
    public Panel(String[] playerNames){
-		grid = new SparseMatrix<Tile>(13, 9);
+		grid = new SparseMatrix<Tile>(10, 13);
       sunToken = new SunToken();
       bgImg = DungeonQuest.loadImage("Board/Board.png");
       
@@ -29,13 +29,13 @@ public class Panel extends JPanel{
          players[i].setPosition(setR, setC);
          //Move set position clockwise in corners
          if(setR == 0){
-            if(setC == 0)
-               setC = 12;
-            else if(setC == 12){
+            if(setC == 0)//If at top left
+               setC = 9;
+            else if(setC == 9){//If at top right
                setR = 12;
             }
          }else{//if(setR == 12)
-            if(setC == 12)
+            if(setC == 9)//If at bottom right
                setC = 0;
          }
       }
@@ -51,6 +51,10 @@ public class Panel extends JPanel{
       //Draw background
       g.drawImage(bgImg, 0, 0, 80 * DungeonQuest.screenFactor, 50 * DungeonQuest.screenFactor, null);
       //Draw all tiles
+      for(int i = 0; i < grid.size(); i++){
+         int[] coord = grid.locationOf(grid.get(i));
+         g.drawImage((BufferedImage)(((Tile)(grid.get(i))).getImage()), coord[0] * 20 + 50, coord[1] * 20 + 50, null);
+      }
       //Draw all heros
       for(Hero h : players)
          h.draw(g);
@@ -82,7 +86,23 @@ public class Panel extends JPanel{
    
    //--Helper--//
    
+   //pre: 0 <= r < 10, 0 <= c < 13
+   //post: Adds new tile at (r, c) with entrance in direction 1 (up), 2 (right), 3 (down), 4 (left)
+   private void createTile(int r, int c, int dir){
+      grid.add(new Tile(dir), r, c);
+   }
    
+   /*
+      Draw a grid with current graphics color and size of 
+      (w, h) at (x, y) with numR rows and numC columns
+   
+   private void drawGrid(Graphics g, int x, int y, int w, int h, int numR, int numC){
+      for(int xD = x; xD < x + w; xD += (w / (numC + 1.0)))
+         g.drawLine(xD, y, xD, y + h);
+      for(int yD = y; yD < y + h; yD += (h / (numR + 1.0)))
+         g.drawLine(yD, x, yD, x + w);
+   }
+   */
    //--Sun Token Class--//
    
    private class SunToken{

@@ -69,6 +69,12 @@ public class SparseMatrix<T> implements Matrixable<T>{
       return null;
    }
    
+   //pre: 0 <= i < list.size()
+   //post: Returns contents of cell at index i in list
+   public T get(int i){
+      return list.get(i).getContents();
+   }
+   
    //pre: 
    //post: Returns number of elements in matrix
    public int size(){

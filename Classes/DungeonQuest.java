@@ -110,6 +110,12 @@ public class DungeonQuest{
       return sum;
    }
    
+   //pre:
+   //post: Returns simulated dice roll with a dice with numSides sides
+   public static int D(int numSides){
+      return (int)(Math.random() * numSides) + 1;
+   }
+   
    //--Listener Classes--//
    
    public static class mouseListen implements MouseListener{

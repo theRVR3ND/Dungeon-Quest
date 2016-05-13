@@ -7,10 +7,6 @@ import java.awt.image.BufferedImage;
 public class Tile{
 
 	private BufferedImage img;	      //Image of this tile
-	private final int rotation;		/*
-                                       Rotation of this tile's entrance (in degrees, 
-                                       with 0 being north, 90 being east, etc.)
-                                    */
 	private Button[] buttons;			//Choices for player in tile (move arrow, search, unlock, etc.)
 	private String[] sides;				/*
 													The contents of the 0 (Middle), 1 (North), 2 (East),
@@ -19,25 +15,34 @@ public class Tile{
 
 	//--Initialize--//
    
-   /*
-      ARGS: tileType is name of folder in DungeonQuest -> Resources -> Board -> Tiles folder.
-            rotation is rotation of tile.
-   */
+   //ARGS: tileType is name of folder in DungeonQuest -> Resources -> Board -> Tiles folder
 	public Tile(){
-      this.rotation = 0;
+		sides = new String[5];
       randomGen();
 		createTileImg();
 	}
    
    //ARGS: dir is either 1 (up), 2 (right), 3 (down), 4 (left), entrance will point in direction dir
    public Tile(int dir){
-      rotation = 90 * (dir - 1);
+		sides = new String[5];
+      sides[dir - 1] = "OPEN";//Force open side
       randomGen();
 		createTileImg();
    }
-	
+   
+   public Tile(String s0, String s1, String s2, String s3, String s4){
+      sides = new String[5];
+      sides[0] = s0;
+      sides[1] = s1;
+      sides[2] = s2; 
+      sides[3] = s3; 
+      sides[4] = s4;
+      createTileImg();
+   }
+   
 	/*
-		ARGS: sides is array containing: [0] - contents of center of tile
+		ARGS: sides.length == 5
+            sides is array containing: [0] - contents of center of tile
 													[1] - upper wall/side
 													[2] - right
 													[3] - bottom 
@@ -45,9 +50,12 @@ public class Tile{
 	*/
 	public Tile(String[] sides){
 		this.sides = sides;
-		rotation = 0;
 		createTileImg();
 	}
+   
+   public Tile(String type){
+   
+   }
 	
 	//--Access--//
 	
@@ -55,28 +63,55 @@ public class Tile{
       return img;
    }
    
+   //pre: 0 < dir <= 4
+   //post: Returns action needed for hero to move through side dir
+   public String actionNeeded(int dir){
+      if(sides[dir].equals("OPEN"))
+         return "NONE";//No actions (card drawings) needed
+      else if(sides[dir].equals("DOOR") || sides[dir].equals("PORTCULLIS"))
+         return "DRAW";//Card draw required
+      else//if(sides[dir].equals("WALL"))
+         return "NOPASS";//Sides is completely impassible
+   }
+   
+   //pre:
+   //post: Returns action needed to be executed by board as hero arrives in tile
+   public String arrivalAction(){
+      if(sides[0].equals("SOLID"))
+         return "NONE";
+      else if(sides[0].equals("HOLE") || sides[0].equals("CAVEIN"))
+         return "DRAW";
+      else if(sides[0].equals("TRAP"))
+         return "TRAP";
+      else//if(sides[0].equals("INKYHOLE"))
+         return "";
+   }
+   
 	//--Mutate--//
 	
    //--Helper--//
    
    private void randomGen(){
-		sides = new String[5];
-      //Generate center spot (hole, solid, cave-in, trap, dark inky hole)
-      if(Math.random() <= 0.30){//Generate other than solid
-         double gen = Math.random();
-         if(gen <= 0.25)
-            sides[0] = "HOLE";
-         else if(gen <= 0.50)
-            sides[0] = "CAVEIN";
-         else if(gen <= 0.75)
-            sides[0] = "TRAP";
-         else//if(gen <= 1.00)
-            sides[0] = "INKYHOLE";
-      }else{//Solid center of tile
-         sides[0] = "SOLID";
+      //Generate center spot (hole, solid, cave-in, trap, dark inky hole) if not already generated
+      if(sides[0] == null){
+         if(Math.random() <= 0.30){//Generate other than solid
+            double gen = Math.random();
+            if(gen <= 0.25)
+               sides[0] = "HOLE";
+            else if(gen <= 0.50)
+               sides[0] = "CAVEIN";
+            else if(gen <= 0.75)
+               sides[0] = "TRAP";
+            else//if(gen <= 1.00)
+               sides[0] = "INKYHOLE";
+         }else{//Solid center of tile
+            sides[0] = "SOLID";
+         }
       }
-      //Generate each side (wall, door, portcullis, open)
+      //Generate each side (wall, door, portcullis, open) if not previously generated
       for(int i = 1; i <= 4; i++){
+         if(sides[i] != null)
+            continue;
          if(Math.random() <= 0.30){
             double gen = Math.random();
             if(gen <= 0.33)

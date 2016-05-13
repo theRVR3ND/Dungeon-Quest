@@ -40,6 +40,14 @@ public class Panel extends JPanel{
                setC = 0;
          }
       }
+      for(int r = 0; r < 5; r++)
+         for(int c = 0; c < 5; c++)
+            grid.add(new Tile(), r, c);
+      //Add starting corner towers
+      grid.add(new Tile("SOLID", "WALL", "OPEN", "OPEN", "WALL"), 0, 0);  //Top left tower
+      grid.add(new Tile("SOLID", "WALL", "OPEN", "OPEN", "WALL"), 0, 0);  //Top right tower
+      grid.add(new Tile("SOLID", "WALL", "OPEN", "OPEN", "WALL"), 0, 0);
+      grid.add(new Tile("SOLID", "WALL", "OPEN", "OPEN", "WALL"), 0, 0);
    }
    
    //--Graphics--//
@@ -54,7 +62,7 @@ public class Panel extends JPanel{
       //Draw all tiles
       for(int i = 0; i < grid.size(); i++){
          int[] coord = grid.locationOf(grid.get(i));//In row, column form
-         g.drawImage(((Tile)(grid.get(i))).getImage(), coord[1] * 20 + 50, coord[0] * 20 + 50, null);
+         g.drawImage(((Tile)(grid.get(i))).getImage(), coord[1] * 60 + 50, coord[0] * 60 + 50, null);
       }
       //Draw all heros
       for(Hero h : players)

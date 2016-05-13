@@ -6,6 +6,7 @@ public class Hero{
 
    //Statistics about a hero (all information taken from rule book)
    
+	private final int maxLife;					//Max life of Hero. Equivallent to initial life.
    private int lifeValue;                 //Amout of health of Hero
    private final int strength,            //Hero's might and stamina
                      agility,             //Hero's spped ability to react quickly
@@ -26,6 +27,7 @@ public class Hero{
    
    public Hero(){
       lifeValue = 1;
+		maxLife = lifeValue;
       strength = 0;
       agility = 0;
       armor = 0;
@@ -36,13 +38,13 @@ public class Hero{
    }
 	
 	public Hero(String name){
-      this.name = "";
       lifeValue = 1;
+		maxLife = lifeValue;
       strength = 0;
       agility = 0;
       armor = 0;
       luck = 0;
-		name = "";
+      this.name = name;
       specialAbility = "";
       flavorText = "";
    }
@@ -55,6 +57,7 @@ public class Hero{
       agility = 	stats[2];
       armor = 		stats[3];
       luck = 		stats[4];
+		maxLife = lifeValue;
 		
       specialAbility = 	text[0];
 		name = 				text[1];

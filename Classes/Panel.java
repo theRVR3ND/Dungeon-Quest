@@ -22,6 +22,7 @@ public class Panel extends JPanel{
       players = new Hero[playerNames.length];
       for(int i = 0; i < playerNames.length; i++)
 		   players[i] = new Hero(playerNames[i]);
+			
       //Place player(s) in corners of grid, in clockwise fashion from top left corner
       int setR = 0,//Row position to set Hero at 
           setC = 0;//Column
@@ -52,8 +53,8 @@ public class Panel extends JPanel{
       g.drawImage(bgImg, 0, 0, 80 * DungeonQuest.screenFactor, 50 * DungeonQuest.screenFactor, null);
       //Draw all tiles
       for(int i = 0; i < grid.size(); i++){
-         int[] coord = grid.locationOf(grid.get(i));
-         g.drawImage((BufferedImage)(((Tile)(grid.get(i))).getImage()), coord[0] * 20 + 50, coord[1] * 20 + 50, null);
+         int[] coord = grid.locationOf(grid.get(i));//In row, column form
+         g.drawImage(((Tile)(grid.get(i))).getImage(), coord[1] * 20 + 50, coord[0] * 20 + 50, null);
       }
       //Draw all heros
       for(Hero h : players)

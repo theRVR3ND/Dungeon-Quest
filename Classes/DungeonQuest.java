@@ -22,11 +22,6 @@ public class DungeonQuest{
    //--Settings--//
    
 	public static int numPlayers;				//Number of players (1 to 4) selected by user(s)
-   public static int screenFactor;        /* 
-                                             Screen (and frame) resizing factor. Frame will always
-                                             be in 80:50 ratio, but overall size will change. Ranges
-                                             from 10 to 15.
-                                          */
    
    //--Main--//
 
@@ -34,11 +29,10 @@ public class DungeonQuest{
    
       //--Initialize--//
       
-      screenFactor = 10;
 		numPlayers = -1;
       
       f = new JFrame("Dungeon Quest || Begin your Quest...");
-      f.setSize(80 * screenFactor, 50 * screenFactor);
+      f.setSize(1200, 750);
       f.setLocation(20, 20);
       f.setResizable(false);//Frame size will be changed by (+) and (-) keys
       f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -125,9 +119,9 @@ public class DungeonQuest{
       
       public void mouseClicked(MouseEvent e){
 			if(m != null)			//If menu open
-				m.mouseClick(e.getX() - 10, e.getY() - 30);
+				m.mouseClick(e.getX() - 5, e.getY() - 30);
 			else if(p != null)	//If game board panel open
-				p.mouseClick(e.getX() - 10, e.getY() - 30);
+				p.mouseClick(e.getX() - 5, e.getY() - 30);
 		}
       
       public void mouseReleased(MouseEvent e){}
@@ -141,21 +135,6 @@ public class DungeonQuest{
       public void keyTyped(KeyEvent e){}
       
       public void keyPressed(KeyEvent e){
-			if(m == null){//Only change frame size if in actual game play
-            if(e.getKeyCode() == KeyEvent.VK_EQUALS){          //Increase frame size factor
-               if(screenFactor < 15){
-                  screenFactor++;
-                  f.setSize(80 * screenFactor, 50 * screenFactor);
-               }
-               return;
-            }else if(e.getKeyCode() == KeyEvent.VK_MINUS){     //Decrease frame size factor
-               if(screenFactor > 10){
-                  screenFactor--;
-                  f.setSize(80 * screenFactor, 50 * screenFactor);
-               }
-               return;
-            }
-         }
 			if(p != null)
          	p.keyPressed(e.getKeyCode());
 			

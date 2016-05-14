@@ -30,6 +30,13 @@ public class Tile{
 		createTileImg();
    }
    
+	/*
+		ARGS: s0 is contents of center
+				s1						top
+				s2						right
+				s3						bottom
+				s4						left
+	*/ 
    public Tile(String s0, String s1, String s2, String s3, String s4){
       sides = new String[5];
       sides[0] = s0;
@@ -52,10 +59,6 @@ public class Tile{
 		this.sides = sides;
 		createTileImg();
 	}
-   
-   public Tile(String type){
-   
-   }
 	
 	//--Access--//
 	
@@ -88,6 +91,50 @@ public class Tile{
    }
    
 	//--Mutate--//
+	
+	//pre:
+	//post: x, y are coordinates of a mouse click, relative to tile
+	public void mouseClick(int x, int y){
+		/*  _______ 
+			|\	    /|
+			| \___/ |
+			| |   | |		The five click "zone" divisions, with the center square dimensions being
+			| |___| |		20 x 20, centered on tile. The slope of dividing lines is 1 and -1.
+			| /   \ |
+			|/_____\|
+			
+			5 click zones: Center - Search room
+								Top - Move hero up
+								Left - Move hero left
+								Bottom - Move hero down
+								Right - Move hero right
+		*/
+		
+		//Check for center box click
+		if(x > 20 && x < 40 && y > 20 && y < 40){
+			System.out.println("Center");
+		}
+		
+		//Top click
+		else if(x > y && x < -y + 60){
+			System.out.println("Top");
+		}
+		
+		//Left click
+		else if(x < y && x < -y + 60){
+			System.out.println("Left");
+		}
+		
+		//Bottom click
+		else if(x < y && x > -y + 60){
+			System.out.println("Bottom");
+		}
+		
+		//Right click
+		else if(x > y && x > -y + 60){
+			System.out.println("Right");
+		}
+	}
 	
    //--Helper--//
    
@@ -128,7 +175,7 @@ public class Tile{
       }
    }
 	
-	//pre: sides != null
+	//pre: sides != null, all indeces of sides are not null
 	//post: Makes img a tile representation matching the contents of sides
 	private void createTileImg(){
 		//Create graphics of img as blank 60 x 60 image
@@ -137,14 +184,14 @@ public class Tile{
 		
 		//Draw corner sections (always the same)
 		for(int i = 0; i < 4; i++){
-			tileImg.rotate(Math.toRadians(90 * i), 30, 30);
 			tileImg.drawImage(DungeonQuest.loadImage("Tiles/Corner.png"), null, 0, 0);
+			tileImg.rotate(Math.toRadians(90), 30, 30);
 		}
 		
 		//Draw out each side's contents
 		for(int i = 0; i < 4; i++){
-			tileImg.rotate(Math.toRadians(90 * i), 30, 30);
 			tileImg.drawImage(DungeonQuest.loadImage("Tiles/" + sides[i + 1] + ".png"), null, 20, 0);
+			tileImg.rotate(Math.toRadians(90), 30, 30);
 		}
 		
 		//Draw out center contents

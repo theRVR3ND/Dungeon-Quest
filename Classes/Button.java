@@ -32,14 +32,14 @@ public class Button{
 	//--Graphics--//
 	
 	public void draw(Graphics g){
-		if(! mouseOver && ! down)
+		if(mouseOver || down)//When mouse over or down
 			g.drawImage(img, x, y, null);
-		else//When mouse over, expand slightly (by 5%)
+		else//If not moused over or down, shrink slightly
 			g.drawImage(img,
-							x - (int)(img.getWidth() * 0.035), 
-							y - (int)(img.getHeight() * 0.035), 
-							(int)(img.getWidth() * 1.07), 
-							(int)(img.getHeight() * 1.07), null);
+							x + (int)(img.getWidth() * 0.025), 
+							y + (int)(img.getHeight() * 0.025), 
+							(int)(img.getWidth() * 0.95), 
+							(int)(img.getHeight() * 0.95), null);
 	}
 	
 	//--Access--//

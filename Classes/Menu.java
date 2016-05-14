@@ -6,7 +6,6 @@ import java.awt.image.BufferedImage;
 
 public class Menu extends JPanel{
 	
-	private final BufferedImage menuImg;	         //Background image of menu
    private String[] heroNames = {"Challara",       //All hero's names
                                  "Gherinn", 
                                  "Hugo", 
@@ -26,8 +25,6 @@ public class Menu extends JPanel{
    //--Initialize--//
 
    public Menu(){
-		menuImg = DungeonQuest.loadImage("Menu/MenuScreen.png");
-	
 		//Create all buttons
 		   //All button images are in one file
 		BufferedImage buttonImgs = DungeonQuest.loadImage("Menu/Buttons.png");
@@ -37,10 +34,10 @@ public class Menu extends JPanel{
 		for(int i = 0; i < 4; i++)
 			//								Seperating overall image into individual button images (130x60)
 			buttons[i] = new Button(buttonImgs.getSubimage(i * 130, 0, 130, 60),
-			//								Align buttons 10 pixels apart starting at (60, 140), going right
-											60 + 140 * i, 210);
+			//								Align buttons 10 pixels apart starting at (240, 350), going right
+											240 + 150 * i, 350);
 			//Create start game button
-		buttons[4] = new Button(buttonImgs.getSubimage(520, 0, 130, 60), 650, 400);
+		buttons[4] = new Button(buttonImgs.getSubimage(520, 0, 130, 60), 1000, 600);
       
       //Assign random hero to each player button (without duplication)
       charInd = new int[4];
@@ -66,26 +63,25 @@ public class Menu extends JPanel{
       super.paintComponent(g);
       //------//
 		//Draw background
-		g.drawImage(menuImg, 0, 0, null);
+		g.drawImage(DungeonQuest.loadImage("Menu/MenuScreen.png"), 0, 0, 1200, 750, null);
+		
 		//By default draw four player selection buttons
 		for(int i = 0; i < 4; i++){
 			buttons[i].draw(g);
          if(buttons[i].isDown()){//If button is down, draw hero assigned to it underneath
             String name = heroNames[charInd[i]];
-            g.drawImage(DungeonQuest.loadImage("Heros/" + name + "/" + name + ".png"), 
-                        buttons[i].getX(), buttons[i].getY() + 30, null);
+            g.drawImage(DungeonQuest.loadImage("Menu/" + name + ".png"), 
+                        buttons[i].getX() + 10, buttons[i].getY() + 80, null);
          }
 		}
+		
 		//Draw start game button, if at least one of the player selection buttons is down
 		for(int i = 0; i < 4; i++)
 			if(buttons[i].isDown()){
 				buttons[4].draw(g);
 				break;//Make sure we don't just draw same button multiple times
 			}
-		
-      //------//
-      repaint(0, 0, 0, 80 * DungeonQuest.screenFactor, 50 * DungeonQuest.screenFactor);
-   }
+	}
    
    //--Access--//
 	
@@ -115,5 +111,7 @@ public class Menu extends JPanel{
 		//Check for click on player selection buttons
    	for(int i = 0; i < 4; i++)
 			buttons[i].checkClick(x, y);
+		//Repaint screen in case anything changed
+      repaint(0, 0, 0, 1200, 750);
    }
 }

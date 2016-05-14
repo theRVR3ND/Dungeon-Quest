@@ -35,6 +35,9 @@ public class Hero{
 		name = "";
       specialAbility = "";
       flavorText = "";
+		
+		x = c * 60 + 50;
+		y = r * 60 + 50;
    }
 	
 	public Hero(String name){
@@ -47,6 +50,9 @@ public class Hero{
       this.name = name;
       specialAbility = "";
       flavorText = "";
+		
+		x = c * 60 + 50;
+		y = r * 60 + 50;
    }
    
    //pre: stats.length == 5, text.length == 2
@@ -62,6 +68,9 @@ public class Hero{
       specialAbility = 	text[0];
 		name = 				text[1];
       flavorText = 		text[2];
+		
+		x = c * 60 + 50;
+		y = r * 60 + 50;
    }
    
    //--Graphics--//

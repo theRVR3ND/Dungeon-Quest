@@ -23,7 +23,7 @@ public class Tile{
 	}
    
    //ARGS: dir is either 1 (up), 2 (right), 3 (down), 4 (left), entrance will point in direction dir
-   public Tile(int dir){
+   public Tile(byte dir){
 		sides = new String[5];
       sides[dir - 1] = "OPEN";//Force open side
       randomGen();
@@ -65,36 +65,10 @@ public class Tile{
    public BufferedImage getImage(){
       return img;
    }
-   
-   //pre: 0 < dir <= 4
-   //post: Returns action needed for hero to move through side dir
-   public String actionNeeded(int dir){
-      if(sides[dir].equals("OPEN"))
-         return "NONE";//No actions (card drawings) needed
-      else if(sides[dir].equals("DOOR") || sides[dir].equals("PORTCULLIS"))
-         return "DRAW";//Card draw required
-      else//if(sides[dir].equals("WALL"))
-         return "NOPASS";//Sides is completely impassible
-   }
-   
-   //pre:
-   //post: Returns action needed to be executed by board as hero arrives in tile
-   public String arrivalAction(){
-      if(sides[0].equals("SOLID"))
-         return "NONE";
-      else if(sides[0].equals("HOLE") || sides[0].equals("CAVEIN"))
-         return "DRAW";
-      else if(sides[0].equals("TRAP"))
-         return "TRAP";
-      else//if(sides[0].equals("INKYHOLE"))
-         return "";
-   }
-   
-	//--Mutate--//
 	
-	//pre:
-	//post: x, y are coordinates of a mouse click, relative to tile
-	public void mouseClick(int x, int y){
+   //pre: x, y are coordinates of a mouse click, relative to tile
+	//post: Returns side clicked
+	public byte mouseClick(int x, int y){
 		/*  _______ 
 			|\	    /|
 			| \___/ |
@@ -112,29 +86,62 @@ public class Tile{
 		
 		//Check for center box click
 		if(x > 20 && x < 40 && y > 20 && y < 40){
-			System.out.println("Center");
+			return 0;
 		}
 		
 		//Top click
 		else if(x > y && x < -y + 60){
-			System.out.println("Top");
-		}
-		
-		//Left click
-		else if(x < y && x < -y + 60){
-			System.out.println("Left");
-		}
-		
-		//Bottom click
-		else if(x < y && x > -y + 60){
-			System.out.println("Bottom");
+			return 1;
 		}
 		
 		//Right click
 		else if(x > y && x > -y + 60){
-			System.out.println("Right");
+			return 2;
 		}
+		
+		//Bottom click
+		else if(x < y && x > -y + 60){
+			return 3;
+		}
+		
+		//Left click
+		else if(x < y && x < -y + 60){
+			return 4;
+		}
+		
+		return -1;
 	}
+	
+   //pre: 0 < dir <= 4
+   //post: Returns action needed for hero to move through side dir
+   public char actionNeeded(byte dir){
+      if(sides[dir].equals("OPEN"))
+         return 'P';//No actions (card drawings) needed
+			
+      else if(sides[dir].equals("DOOR") || sides[dir].equals("PORTCULLIS"))
+         return 'D';//Card draw required
+			
+		else if(sides[dir].equals("EXIT"))//Treasure required (to leave dungeon)
+			return 'T';
+		
+      else//if(sides[dir].equals("WALL"))
+         return 'N';//Sides is completely impassible (NO PASS)
+   }
+   
+   //pre:
+   //post: Returns action needed to be executed by board as hero arrives in tile
+   public String arrivalAction(){
+      if(sides[0].equals("SOLID"))
+         return "NONE";
+      else if(sides[0].equals("HOLE") || sides[0].equals("CAVEIN"))
+         return "DRAW";
+      else if(sides[0].equals("TRAP"))
+         return "TRAP";
+      else//if(sides[0].equals("INKYHOLE"))
+         return "";
+   }
+   
+	//--Mutate--//
 	
    //--Helper--//
    
@@ -156,7 +163,7 @@ public class Tile{
          }
       }
       //Generate each side (wall, door, portcullis, open) if not previously generated
-      for(int i = 1; i <= 4; i++){
+      for(byte i = 1; i <= 4; i++){
          if(sides[i] != null)
             continue;
          if(Math.random() <= 0.30){
@@ -183,13 +190,13 @@ public class Tile{
 		Graphics2D tileImg = img.createGraphics();
 		
 		//Draw corner sections (always the same)
-		for(int i = 0; i < 4; i++){
+		for(byte i = 0; i < 4; i++){
 			tileImg.drawImage(DungeonQuest.loadImage("Tiles/Corner.png"), null, 0, 0);
 			tileImg.rotate(Math.toRadians(90), 30, 30);
 		}
 		
 		//Draw out each side's contents
-		for(int i = 0; i < 4; i++){
+		for(byte i = 0; i < 4; i++){
 			tileImg.drawImage(DungeonQuest.loadImage("Tiles/" + sides[i + 1] + ".png"), null, 20, 0);
 			tileImg.rotate(Math.toRadians(90), 30, 30);
 		}

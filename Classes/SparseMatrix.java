@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 public class SparseMatrix<T> implements Matrixable<T>{
    
-   private final int numR, numC;							//Number of rows and number of columns
+   private final byte numR, numC;						//Number of rows and number of columns
    private ArrayList<Cell<T>> list;						//Arraylist of all grid cells
    
    //-----Initialize-----//
    
-   public SparseMatrix(int rIn, int cIn){
+   public SparseMatrix(byte rIn, byte cIn){
       list = new ArrayList<Cell<T>>();
       numR = rIn;
       numC = cIn;
@@ -20,11 +20,11 @@ public class SparseMatrix<T> implements Matrixable<T>{
    //pre: addThis != null
    //post: Adds new cell or replaces previous cell at position (r, c) with 
    //      contents addThis and returns previous value at (r, c)
-   public T add(T addThis, int r, int c){
+   public T add(T addThis, byte r, byte c){
       if(r < 0 || r >= numR || c < 0 || c >= numC)
          return null;
          
-      for(int i = 0; i < list.size(); i++)
+      for(byte i = 0; i < list.size(); i++)
          if(list.get(i).getKey() == r * numC + c){
             T prevThere = list.get(i).getContents();
             list.get(i).setContents(addThis);
@@ -37,11 +37,11 @@ public class SparseMatrix<T> implements Matrixable<T>{
    
    //pre: 
    //post: Removes/deletes cell at (r, c) and returns contents, if present
-   public T remove(int r, int c){
+   public T remove(byte r, byte c){
       if(r < 0 || r >= numR || c < 0 || c >= numC)
          return null;
          
-      for(int i = 0; i < list.size(); i++){
+      for(byte i = 0; i < list.size(); i++){
          if(list.get(i).getKey() == r * numC + c)
             return list.remove(i).getContents();
       }
@@ -58,11 +58,11 @@ public class SparseMatrix<T> implements Matrixable<T>{
    
    //pre: 
    //post: Returns contents of matrix at (r, c)
-   public T get(int r, int c){
+   public T get(byte r, byte c){
       if(r < 0 || r >= numR || c < 0 || c >= numC)
          return null;
       
-      for(int i = 0; i < list.size(); i++)
+      for(byte i = 0; i < list.size(); i++)
          if(list.get(i).getKey() == r * numC + c)
             return list.get(i).getContents();
       //If no cell at (r, c) exists
@@ -71,14 +71,14 @@ public class SparseMatrix<T> implements Matrixable<T>{
    
    //pre: 0 <= i < list.size()
    //post: Returns contents of cell at index i in list
-   public T get(int i){
+   public T get(byte i){
       return list.get(i).getContents();
    }
    
    //pre: 
    //post: Returns number of elements in matrix
-   public int size(){
-      return list.size();
+   public byte size(){
+      return (byte)list.size();
    }
    
    //pre: 
@@ -89,13 +89,13 @@ public class SparseMatrix<T> implements Matrixable<T>{
    
    //pre: 
    //post: Returns row dimension of matirx
-   public int numRow(){
+   public byte numRow(){
       return numR;
    }
    
    //pre: 
    //post: Returns column dimension of matrix
-   public int numCol(){
+   public byte numCol(){
       return numC;
    }
    
@@ -110,8 +110,8 @@ public class SparseMatrix<T> implements Matrixable<T>{
    
    //pre: 
    //post: Returns number of occurences of searchFor in matrix
-   public int numberOf(T searchFor){
-      int numOf = 0;
+   public byte numberOf(T searchFor){
+      byte numOf = 0;
       for(Cell c : list)
          if(c.getContents().equals(searchFor))
             numOf++;
@@ -121,12 +121,12 @@ public class SparseMatrix<T> implements Matrixable<T>{
    //pre: 
    //post: Returns int[] with index 0 being the row location of find
    //      and index 1 being the column value find
-   public int[] locationOf(T find){
-      int[] coord = new int[2];
-      for(int i = 0; i < list.size(); i++)
+   public byte[] locationOf(T find){
+      byte[] coord = new byte[2];
+      for(byte i = 0; i < list.size(); i++)
          if(list.get(i).getContents().equals(find)){
-            coord[0] = list.get(i).getKey() / numC;//Row coordinate
-            coord[1] = list.get(i).getKey() % numC;//Column coordinate
+            coord[0] = (byte)(list.get(i).getKey() / numC);//Row coordinate
+            coord[1] = (byte)(list.get(i).getKey() % numC);//Column coordinate
             return coord;
          }
       return null;
@@ -148,8 +148,8 @@ public class SparseMatrix<T> implements Matrixable<T>{
    //post: Returns conventional array form of this matrix
    public Object[][] toArray(){
       Object[][] arr = new Object[numR][numC];
-      for(int r = 0; r < numR; r++)
-         for(int c = 0; c < numC; c++)
+      for(byte r = 0; r < numR; r++)
+         for(byte c = 0; c < numC; c++)
             arr[r][c] = get(r, c);
       return arr;
    }
@@ -161,8 +161,8 @@ public class SparseMatrix<T> implements Matrixable<T>{
    //      empty space.
    public String toString(){
       String ret = "";
-      for(int r = 0; r < numR; r++){
-         for(int c = 0; c < numC; c++){
+      for(byte r = 0; r < numR; r++){
+         for(byte c = 0; c < numC; c++){
             if(get(r, c) != null)
                ret += get(r, c).toString() + " ";
             else

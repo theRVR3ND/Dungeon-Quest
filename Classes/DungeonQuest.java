@@ -19,17 +19,11 @@ public class DungeonQuest{
    public static Menu m;                  //Menu screen
    public static Panel p;                 //Main game content pane
    
-   //--Settings--//
-   
-	public static int numPlayers;				//Number of players (1 to 4) selected by user(s)
-   
    //--Main--//
 
    public static void main(String[] args){
    
       //--Initialize--//
-      
-		numPlayers = -1;
       
       f = new JFrame("Dungeon Quest || Begin your Quest...");
       f.setSize(1200, 750);
@@ -49,7 +43,7 @@ public class DungeonQuest{
       //--Menu open--//
       
       //Keep doing nothing while settings have not been selected by player(s)
-      while(numPlayers == -1){
+      while(p == null){
 			System.out.print("");
 		}
 		
@@ -96,18 +90,18 @@ public class DungeonQuest{
    
    //pre: 
    //post: Returns sum of values from simulated roll of numDice dies
-   public static int rollDice(int numDice){
-      int sum = 0;
-      for(int i = 0; i < numDice; i++){
-         sum += (int)(Math.random() * 6 + 1);
+   public static byte rollDice(byte numDice){
+      byte sum = 0;
+      for(byte i = 0; i < numDice; i++){
+         sum += (byte)(Math.random() * 6 + 1);
       }
       return sum;
    }
    
    //pre:
    //post: Returns simulated dice roll with a dice with numSides sides
-   public static int D(int numSides){
-      return (int)(Math.random() * numSides) + 1;
+   public static byte D(byte numSides){
+      return (byte)((Math.random() * numSides) + 1);
    }
    
    //--Listener Classes--//
@@ -119,9 +113,9 @@ public class DungeonQuest{
       
       public void mouseClicked(MouseEvent e){
 			if(m != null)			//If menu open
-				m.mouseClick(e.getX() - 5, e.getY() - 30);
+				m.mouseClick(e.getX() - 10, e.getY() - 30);
 			else if(p != null)	//If game board panel open
-				p.mouseClick(e.getX() - 5, e.getY() - 30);
+				p.mouseClick(e.getX() - 10, e.getY() - 30);
 		}
       
       public void mouseReleased(MouseEvent e){}

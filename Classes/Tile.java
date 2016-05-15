@@ -126,7 +126,20 @@ public class Tile{
 		return sides[i];
    }
 	
+	//pre:
+	//post: Returns sides
+	public char[] getSides(){
+		return sides;
+	}
+	
 	//--Mutate--//
+	
+	//pre: sides.length == 5
+	//post: Sets sides to sides
+	public void setSides(char[] sides){
+		this.sides = sides;
+		createTileImg();
+	}
 	
    //--Helper--//
    
@@ -149,6 +162,9 @@ public class Tile{
 			else if(gen < 0.7)
 				sides[0] = 'G';		//Gold (treasure)
 				
+			else if(gen < 0.8)
+				sides[0] = 'R';		//Rotating room
+				
          else//if(gen <= 1.00)
             sides[0] = 'I';		//Inky hole
 					
@@ -156,13 +172,18 @@ public class Tile{
       //Generate each side (wall, door, portcullis, open) if not previously generated
       for(byte i = 1; i <= 4; i++){
          if(sides[i] == '\0'){
+				if(sides[0] == 'R'){//If rotating room, all sides (except force open) are walls
+					sides[i] = 'W';
+					continue;
+				}
+			
             double gen = Math.random();
-         	if(gen < 0.30)
-            	sides[i] = 'O';	//Open
-					
-            else if(gen <= 0.4)
+            if(gen <= 0.3)
                sides[i] = 'W';	//Wall
-            
+         	
+				else if(gen < 0.40)
+            	sides[i] = 'O';	//Open
+				        
             else if(gen <= 0.6)
                sides[i] = 'D';	//Door
             
@@ -212,6 +233,8 @@ public class Tile{
 			case('T'): return "TRAP";
 			
 			case('I'): return "INKYHOLE";
+			
+			case('R'): return "ROTATING";
 			
 			case('D'): return "DOOR";
 			

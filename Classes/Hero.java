@@ -40,8 +40,8 @@ public class Hero{
       specialAbility = "";
       flavorText = "";
 		
-		x = c * 60 + Panel.boardX + 15;
-		y = r * 60 + Panel.boardY + 15;
+		x = c * 60 + Panel.boardX + 22;
+		y = r * 60 + Panel.boardY + 17;
    }
 	
 	public Hero(String name){
@@ -84,8 +84,8 @@ public class Hero{
 		this.name = 		text[1];
       flavorText = 		text[2];
 		
-		x = c * 60 + Panel.boardX + 15;
-		y = r * 60 + Panel.boardY + 15;
+		x = c * 60 + Panel.boardX + 22;
+		y = r * 60 + Panel.boardY + 17;
    }
    
    //pre: stats.length == 5, text.length == 2
@@ -103,22 +103,21 @@ public class Hero{
 		name = 				text[1];
       flavorText = 		text[2];
 		
-		x = c * 60 + Panel.boardX + 15;
-		y = r * 60 + Panel.boardY + 15;
+		x = c * 60 + Panel.boardX + 22;
+		y = r * 60 + Panel.boardY + 17;
    }
    
    //--Graphics--//
    
    public void draw(Graphics g){
 		//Glide towards wanted location
-   	if(x < c * 60 + Panel.boardX + 15)
+   	if(x < c * 60 + Panel.boardX + 22)
 			x++;
-		else if(x > c * 60 + Panel.boardX + 15)
+		else if(x > c * 60 + Panel.boardX + 22)
 			x--;
-		
-   	if(y < r * 60 + Panel.boardY + 15)
+   	else if(y < r * 60 + Panel.boardY + 17)
 			y++;
-		else if(y > r * 60 + Panel.boardY + 15)
+		else if(y > r * 60 + Panel.boardY + 17)
 			y--;
 			
 		g.drawImage(DungeonQuest.loadImage("Heros/" + name + ".png"), x, y, null);
@@ -195,7 +194,7 @@ public class Hero{
 	//pre:
 	//post: Returns true if (x, y) position have "glided" to match (r, c)
 	public boolean doneGliding(){
-		return x == c * 60 + Panel.boardX + 15 && y == r * 60 + Panel.boardY + 15;
+		return x == c * 60 + Panel.boardX + 22 && y == r * 60 + Panel.boardY + 17;
 	}
 	
    //--Mutate--//
@@ -206,8 +205,8 @@ public class Hero{
       this.r = r;
       this.c = c;
       
-		x = c * 60 + Panel.boardX + 15;
-		y = r * 60 + Panel.boardY + 15;
+		x = c * 60 + Panel.boardX + 22;
+		y = r * 60 + Panel.boardY + 17;
    }
 	
 	//pre: 

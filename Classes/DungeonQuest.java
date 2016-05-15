@@ -30,7 +30,6 @@ public class DungeonQuest{
       f.setResizable(false);//Frame size will be changed by (+) and (-) keys
       f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       f.addMouseListener(new mouseListen());
-      f.addKeyListener(new keyListen());
       
       m = new Menu();
       
@@ -88,19 +87,13 @@ public class DungeonQuest{
    }
    
    //pre: 
-   //post: Returns sum of values from simulated roll of numDice dies
-   public static byte rollDice(byte numDice){
+   //post: Returns sum of values from simulated roll of numDice dies, each with numSide sides
+   public static byte rollDice(byte numDice, byte numSide){
       byte sum = 0;
       for(byte i = 0; i < numDice; i++){
-         sum += (byte)(Math.random() * 6 + 1);
+         sum += (byte)(Math.random() * numSide + 1);
       }
       return sum;
-   }
-   
-   //pre:
-   //post: Returns simulated dice roll with a dice with numSides sides
-   public static byte D(byte numSides){
-      return (byte)((Math.random() * numSides) + 1);
    }
    
    //--Listener Classes--//
@@ -127,10 +120,6 @@ public class DungeonQuest{
       
       public void keyTyped(KeyEvent e){}
       
-      public void keyPressed(KeyEvent e){
-			if(p != null)
-         	p.keyPressed(e.getKeyCode());
-			
-      }
+      public void keyPressed(KeyEvent e){}
    }
 }

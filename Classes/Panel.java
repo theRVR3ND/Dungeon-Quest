@@ -18,6 +18,8 @@ public class Panel extends JPanel{
 	
 	public static final byte boardX = 50,					//Used for easier shifting of board position
 							 		 boardY = 70;
+									 
+	private final byte MAX_FPS = 30;							//Maximum frame updates per second
    
    //--Initialize--//
 
@@ -68,6 +70,8 @@ public class Panel extends JPanel{
    public void paintComponent(Graphics g){
       super.paintComponent(g);
       //------//
+		final long startTime = System.currentTimeMillis();
+		
 		//Draw background
       g.drawImage(bgImg, 0, 0, 1200, 750, null);
       
@@ -84,15 +88,19 @@ public class Panel extends JPanel{
 		g.setColor(new Color(188, 175, 120));
 		g.drawRect(boardX - 10, boardY - 10, 800, 620);
 		
-      //Draw all heros
+      //Draw all heros whom are still in game
       for(Hero h : players)
-         h.draw(g);
+			if(h != null)
+         	h.draw(g);
 			
 		//Draw message
 		if(message != null){
-			double fade = (500 - messageUpdates) / 100.0;//Make message fade as it updates more and more
-			fade %= 1;
-			g.setColor(new Color((float)(127.0 / 255), 0, 0, 1 - (float)fade));
+			if(messageUpdates <= 30){
+				double fade = (30 - messageUpdates) / 30.0;//Make message fade as it updates more and more
+				g.setColor(new Color((float)(127.0 / 255), 0, 0, 1 - (float)fade));
+			}else{
+				g.setColor(new Color(127, 0, 0));
+			}
 			g.setFont(new Font("Pristina", Font.PLAIN, 35));
 			g.drawString(message, boardX + 800, boardY + 600);
 			messageUpdates--;
@@ -112,8 +120,44 @@ public class Panel extends JPanel{
 				break;
 			}
 		}
-		if(messageUpdates > 0 || ! playersDoneGliding || ! sun.doneGliding())
+		//Rotate current Hero's room, if it is a rotating room
+		if(playersDoneGliding){
+				//Find "previous" player, as advanceTurn() has already been called
+			byte prevInd = turnInd;
+			do{
+				prevInd--;
+				if(prevInd < 0)
+					prevInd = (byte)(players.length - 1);
+			}while(players[prevInd] == null);
+			
+			Hero h = players[prevInd];
+			if(grid.get(h.getRow(), h.getColumn()).getSide((byte)0) == 'R'){//If rotating room
+				//Rotate room's sides by 180
+				char[] sides = grid.get(h.getRow(), h.getColumn()).getSides();
+					//Swap the opposite tile sides
+				char temp = sides[1];	//Swaping top and bottom
+				sides[1] = sides[3];
+				sides[3] = temp;
+				
+				temp = sides[2];			//Swaping left and right
+				sides[2] = sides[4];
+				sides[4] = temp;
+				
+				//Turn room into regular type (so it does not rotate anymore)
+				sides[0] = 'S';
+				
+				//Implement changes
+				grid.get(h.getRow(), h.getColumn()).setSides(sides);
+				//Reflect changes
+				repaint(0, 0, 1200, 750);
+			}
+		}
+		//Check if we need to repaint screen (will stop repainting to save resources)
+		if(message != null || ! playersDoneGliding || ! sun.doneGliding()){
+			while(System.currentTimeMillis() < startTime + 1000.0 / MAX_FPS)//Wait so max frame updates per second is maintained
+				System.out.print("");
 			repaint(0, 0, 1200, 750);
+		}
    }
    
 	//--Access--//
@@ -125,23 +169,17 @@ public class Panel extends JPanel{
 	public void setMessage(String message){
 		this.message = message;
 		messageUpdates = 100;
+		//Reflect any graphical changes
+		repaint(0, 0, 1200, 750);
 	}
-	
-   //pre:
-   //post: Goes through each player, letting them take a turn
-   public void turn(){
-	
-   }
-   
-   //pre: k is a valid key code
-   //post: Performs an action(s) based on key press with key code k
-   public void keyPressed(int k){
-   
-   }
 	
 	//pre: 
 	//post: Determines which tile on board was clicked (if any) and passes on click coordinates to tile.
 	public void mouseClick(int x, int y){
+		//Make sure all players are done gliding before anything
+		for(Hero h : players)
+			if(! h.doneGliding())
+				return;
 		//Figure out which tile is being clicked
 		int cR = (y - boardY) / 60,//Click column (of board)
 			 cC = (x - boardX) / 60;//		 row
@@ -159,7 +197,7 @@ public class Panel extends JPanel{
 		
 		//Do stuff based on direction of click (and tile contents)
 		if(direction == 0){			//Center
-			searchTile((byte)cR, (byte)cC);
+			centerAction((byte)cR, (byte)cC);
 			
 		}else if(direction == 1){	//North
 			moveHero((byte)1);
@@ -180,13 +218,14 @@ public class Panel extends JPanel{
 	//pre:
 	//post: Advances turnInd to match index of next non-null player in array players
 	private void advanceTurn(){
+		//Advancing turnInd
 		do{
 			turnInd++;
-			if(turnInd == players.length)
+			if(turnInd == players.length){
 				turnInd = 0;
+				sun.advance();
+			}
 		}while(players[turnInd] == null);
-		if(turnInd == 0)
-			sun.advance();
 	}
 	
 	//pre: dir = 1, 2, 3, or 4
@@ -219,16 +258,23 @@ public class Panel extends JPanel{
 			return;
 			
 		else if(side == 'D'){		//If door
-			if(! openDoor())//Draw a door card
+			if(! openDoor()){//Draw a door card
+				advanceTurn();
 				return;
+			}
 				
 		}else if(side == 'E'){		//If exit (of the dungeon)
-			if(players[turnInd].getTreasure() > 0)
-				System.out.print("");//Player should exit the dungeon (and game)
-				
+			if(players[turnInd].getTreasure() > 0){
+				players[turnInd] = null;//Player exits the dungeon (and game)
+				advanceTurn();
+			}else
+				setMessage("You may not exit without treasure...");
+			return;
 		}else if(side == 'P'){		//If portcullis
-			if(! movePortcullis())//Test hero's strength
+			if(! movePortcullis()){//Test hero's strength
+				advanceTurn();
 				return;
+			}
 		}
 		
 		/* MOVE MUST BE VALID AT THIS POINT */
@@ -245,18 +291,18 @@ public class Panel extends JPanel{
 				forceOpen = (byte)(forceOpen % 4);
 			forceSides[forceOpen] = 'O';
 			//Force walls on all edges of board
-			if(cC + moveC <= 0)			//If on left edge
+			if(cC + moveC == 0)			//If on left edge
 				forceSides[4] = 'W';
 				
-			else if(cC + moveC >= 13)	//If on right edge
-				forceSides[3] = 'W';
+			else if(cC + moveC == 12)	//If on right edge
+				forceSides[2] = 'W';
 				
-			else if(cR + moveR <= 0)	//If on top edge
+			else if(cR + moveR == 0)	//If on top edge
 				forceSides[1] = 'W';
 			
-			else if(cR + moveR >= 10)	//If on bottom edge
+			else if(cR + moveR == 9)	//If on bottom edge
 				forceSides[3] = 'W';
-				
+			
 			//Finally create actual tile
 			grid.add(new Tile(forceSides), (byte)(cR + moveR), (byte)(cC + moveC));
 		}
@@ -267,11 +313,35 @@ public class Panel extends JPanel{
 		repaint(0, 0, 1200, 750);
 	}
 	
-	private void searchTile(byte r, byte c){
-		//Draw search card
+	private void centerAction(byte r, byte c){
+		//Figure out what is in the center
+		char cent = grid.get(r, c).getSide((byte)0);
+		if(cent == 'S' || cent == 'R'){			//Solid ground or rotating room (search)
+			if(Math.random() < 0.5){
+				setMessage("You find something");
+			}else{
+				setMessage("Nothing shows up");
+			}
+		}else if(cent == 'G'){						//Treasure room (draw treasure card)
+			if(Math.random() < 0.5){
+				setMessage("Much gold");
+				players[turnInd].addTreasure((byte)(Math.random() * 50 + 50));
+			}else{
+				setMessage("Rekt");
+			}
+		}/*else if(cent == 'S'){ 
 		
+		}else if(cent == 'S'){
+		
+		}else if(cent == 'S'){
+		
+		}*/
+		else
+			return;
 		//Give next player the turn
 		advanceTurn();
+		//Reflect any graphical changes
+		repaint(0, 0, 1200, 750);
 	}
 	
 	//Simulate a draw of a door card

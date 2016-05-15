@@ -7,25 +7,36 @@ import java.awt.image.BufferedImage;
 public class Tile{
 
 	private BufferedImage img;	      //Image of this tile
-	private Button[] buttons;			//Choices for player in tile (move arrow, search, unlock, etc.)
-	private String[] sides;				/*
+	private char[] sides;				/*
 													The contents of the 0 (Middle), 1 (North), 2 (East),
-													3 (South), 4 (West) sides of this tile (wall, door, etc.)
+													3 (South), 4 (West) sides of this tile.
+													Center contents:
+														Solid = 'S'
+														Hole = 'H'
+														Cave-in = 'C'
+														Trap = 'T'
+														Inky Hole = 'I'
+													Wall contents: 
+														Wall = 'W'
+														Open = 'O'
+														Door = 'D'
+														Portcullis = 'P'
+														Exit = 'E'
 												*/
 
 	//--Initialize--//
    
    //ARGS: tileType is name of folder in DungeonQuest -> Resources -> Board -> Tiles folder
 	public Tile(){
-		sides = new String[5];
+		sides = new char[5];
       randomGen();
 		createTileImg();
 	}
    
    //ARGS: dir is either 1 (up), 2 (right), 3 (down), 4 (left), entrance will point in direction dir
    public Tile(byte dir){
-		sides = new String[5];
-      sides[dir - 1] = "OPEN";//Force open side
+		sides = new char[5];
+      sides[dir] = 'O';//Force open side
       randomGen();
 		createTileImg();
    }
@@ -37,13 +48,14 @@ public class Tile{
 				s3						bottom
 				s4						left
 	*/ 
-   public Tile(String s0, String s1, String s2, String s3, String s4){
-      sides = new String[5];
+   public Tile(char s0, char s1, char s2, char s3, char s4){
+      sides = new char[5];
       sides[0] = s0;
       sides[1] = s1;
       sides[2] = s2; 
       sides[3] = s3; 
       sides[4] = s4;
+		randomGen();//Generate any missing contents
       createTileImg();
    }
    
@@ -55,8 +67,9 @@ public class Tile{
 													[3] - bottom 
 													[4] - left
 	*/
-	public Tile(String[] sides){
+	public Tile(char[] sides){
 		this.sides = sides;
+		randomGen();//Generate any missing contents
 		createTileImg();
 	}
 	
@@ -85,100 +98,77 @@ public class Tile{
 		*/
 		
 		//Check for center box click
-		if(x > 20 && x < 40 && y > 20 && y < 40){
+		if(x > 20 && x < 40 && y > 20 && y < 40)
 			return 0;
-		}
-		
+					
 		//Top click
-		else if(x > y && x < -y + 60){
+		else if(x > y && x < -y + 60)
 			return 1;
-		}
 		
 		//Right click
-		else if(x > y && x > -y + 60){
+		else if(x > y && x > -y + 60)
 			return 2;
-		}
 		
 		//Bottom click
-		else if(x < y && x > -y + 60){
+		else if(x < y && x > -y + 60)
 			return 3;
-		}
 		
 		//Left click
-		else if(x < y && x < -y + 60){
+		else if(x < y && x < -y + 60)
 			return 4;
-		}
 		
 		return -1;
 	}
+   
+   //pre: 0 <= i < 5
+   //post: Returns index i of sides
+   public char getSide(byte i){
+		return sides[i];
+   }
 	
-   //pre: 0 < dir <= 4
-   //post: Returns action needed for hero to move through side dir
-   public char actionNeeded(byte dir){
-      if(sides[dir].equals("OPEN"))
-         return 'P';//No actions (card drawings) needed
-			
-      else if(sides[dir].equals("DOOR") || sides[dir].equals("PORTCULLIS"))
-         return 'D';//Card draw required
-			
-		else if(sides[dir].equals("EXIT"))//Treasure required (to leave dungeon)
-			return 'T';
-		
-      else//if(sides[dir].equals("WALL"))
-         return 'N';//Sides is completely impassible (NO PASS)
-   }
-   
-   //pre:
-   //post: Returns action needed to be executed by board as hero arrives in tile
-   public String arrivalAction(){
-      if(sides[0].equals("SOLID"))
-         return "NONE";
-      else if(sides[0].equals("HOLE") || sides[0].equals("CAVEIN"))
-         return "DRAW";
-      else if(sides[0].equals("TRAP"))
-         return "TRAP";
-      else//if(sides[0].equals("INKYHOLE"))
-         return "";
-   }
-   
 	//--Mutate--//
 	
    //--Helper--//
    
    private void randomGen(){
       //Generate center spot (hole, solid, cave-in, trap, dark inky hole) if not already generated
-      if(sides[0] == null){
-         if(Math.random() <= 0.30){//Generate other than solid
-            double gen = Math.random();
-            if(gen <= 0.25)
-               sides[0] = "HOLE";
-            else if(gen <= 0.50)
-               sides[0] = "CAVEIN";
-            else if(gen <= 0.75)
-               sides[0] = "TRAP";
-            else//if(gen <= 1.00)
-               sides[0] = "INKYHOLE";
-         }else{//Solid center of tile
-            sides[0] = "SOLID";
-         }
+      if(sides[0] == '\0'){
+         double gen = Math.random();
+  			if(gen < 0.3)       
+				sides[0] = 'S';		//Solid
+				
+         else if(gen < 0.4)
+            sides[0] = 'H';		//Hole
+				
+         else if(gen < 0.5)
+            sides[0] = 'C';		//Cave-in
+				
+         else if(gen < 0.6)
+            sides[0] = 'T';		//Trap
+				
+			else if(gen < 0.7)
+				sides[0] = 'G';		//Gold (treasure)
+				
+         else//if(gen <= 1.00)
+            sides[0] = 'I';		//Inky hole
+					
       }
       //Generate each side (wall, door, portcullis, open) if not previously generated
       for(byte i = 1; i <= 4; i++){
-         if(sides[i] != null)
-            continue;
-         if(Math.random() <= 0.30){
+         if(sides[i] == '\0'){
             double gen = Math.random();
-            if(gen <= 0.33)
-               sides[i] = "DOOR";
+         	if(gen < 0.30)
+            	sides[i] = 'O';	//Open
+					
+            else if(gen <= 0.4)
+               sides[i] = 'W';	//Wall
             
-            else if(gen <= 0.66)
-               sides[i] = "PORTCULLIS";
+            else if(gen <= 0.6)
+               sides[i] = 'D';	//Door
             
             else//if(gen <= 1.00)
-               sides[i] = "WALL";
-         }else{
-            sides[i] = "OPEN";
-         }
+               sides[i] = 'P';	//Portcullis
+			}
       }
    }
 	
@@ -197,13 +187,41 @@ public class Tile{
 		
 		//Draw out each side's contents
 		for(byte i = 0; i < 4; i++){
-			tileImg.drawImage(DungeonQuest.loadImage("Tiles/" + sides[i + 1] + ".png"), null, 20, 0);
+			tileImg.drawImage(DungeonQuest.loadImage("Tiles/" + getName(sides[i + 1]) + ".png"), null, 20, 0);
 			tileImg.rotate(Math.toRadians(90), 30, 30);
 		}
 		
 		//Draw out center contents
-		if(! sides[0].equals("TRAP"))//Add random rotation (0, 90, 180, 270) to all center contents EXCEPT trap
+		if(sides[0] != 'T')//Add random rotation (0, 90, 180, 270) to all center contents EXCEPT trap
 			tileImg.rotate(Math.toRadians((int)(Math.random() * 4) * 90), 30, 30);
-		tileImg.drawImage(DungeonQuest.loadImage("Tiles/" + sides[0] + ".png"), null, 20, 20);
+		tileImg.drawImage(DungeonQuest.loadImage("Tiles/" + getName(sides[0]) + ".png"), null, 20, 20);
+	}
+	
+	//pre:
+	//post: Returns name of image of contents n
+	private String getName(char n){
+		switch(n){
+			case('W'): return "WALL";
+			
+			case('S'): return "SOLID";
+			
+			case('O'): return "OPEN";
+			
+			case('P'): return "PORTCULLIS";
+			
+			case('T'): return "TRAP";
+			
+			case('I'): return "INKYHOLE";
+			
+			case('D'): return "DOOR";
+			
+			case('C'): return "CAVEIN";
+			
+			case('H'): return "HOLE";
+			
+			case('G'): return "TREASURE";
+			
+			default: return "EXIT";
+		}
 	}
 }

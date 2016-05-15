@@ -10,6 +10,7 @@ public class Hero{
    
 	private final byte maxLife;				//Max life of Hero. Equivallent to initial life.
    private byte lifeValue;                //Amout of health of Hero
+	private byte treasure;						//Amout of treasure player has
    private final byte strength,           //Hero's might and stamina
                       agility,            //Hero's spped ability to react quickly
                       armor,              //Hero's ability to prevent or ignore wounds
@@ -29,6 +30,7 @@ public class Hero{
    
    public Hero(){
       lifeValue = 1;
+		treasure = 0;
 		maxLife = lifeValue;
       strength = 0;
       agility = 0;
@@ -76,6 +78,7 @@ public class Hero{
       armor = 		stats[3];
       luck = 		stats[4];
 		maxLife = lifeValue;
+		treasure = 0;
 		
       specialAbility = 	text[0];
 		this.name = 		text[1];
@@ -94,6 +97,7 @@ public class Hero{
       armor = 		stats[3];
       luck = 		stats[4];
 		maxLife = lifeValue;
+		treasure = 0;
 		
       specialAbility = 	text[0];
 		name = 				text[1];
@@ -106,14 +110,15 @@ public class Hero{
    //--Graphics--//
    
    public void draw(Graphics g){
+		//Glide towards wanted location
    	if(x < c * 60 + Panel.boardX + 15)
 			x++;
-		else
+		else if(x > c * 60 + Panel.boardX + 15)
 			x--;
 		
    	if(y < r * 60 + Panel.boardY + 15)
 			y++;
-		else
+		else if(y > r * 60 + Panel.boardY + 15)
 			y--;
 			
 		g.drawImage(DungeonQuest.loadImage("Heros/" + name + ".png"), x, y, null);
@@ -126,6 +131,12 @@ public class Hero{
    public byte getLifeValue(){
       return lifeValue;
    }
+	
+	//pre:
+	//post: Returns treasure which hero has accquired
+	public byte getTreasure(){
+		return treasure;
+	}
 	
 	//pre:
 	//post: Returns true if live value > 0
@@ -199,24 +210,19 @@ public class Hero{
 		y = r * 60 + Panel.boardY + 15;
    }
 	
-	//pre:
+	//pre: 
 	//post: Changes r and c based on rMove and cMove, but does not change x, y graphic position
 	public void move(byte rMove, byte cMove){
 		r += rMove;
 		c += cMove;
-		
-		//Limit in grid
-		if(r < 0)
-			r = 0;
-		else if(r >= 10)
-			r = 9;
-		
-		if(c < 0)
-			c = 0;
-		else if(c >= 13)
-			c = 12;
 	}
    
+	//pre:
+	//post:
+	public void addTreasure(byte i){
+		treasure += i;
+	}
+	
    //pre: healthDeduction > 0
    //post: Reduces health value by healthDeduction
    public void hurtBy(byte healthDeduction){

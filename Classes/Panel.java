@@ -14,7 +14,7 @@ public class Panel extends JPanel{
 	private SparseMatrix<Tile> grid;							//Matrix for all tile spots on board. Basically the game board.
 	private String message;										//Any text to display to board
 	private byte messageUpdates;								//Number of screen updates message should be displayed for
-	private SunToken sunToken;                         //"Chip" used to represent/advance time
+	private SunToken sun;										//Token to keep track of day
 	
 	public static final byte boardX = 50,					//Used for easier shifting of board position
 							 		 boardY = 70;
@@ -23,9 +23,9 @@ public class Panel extends JPanel{
 
    public Panel(String[] playerNames){
 		grid = new SparseMatrix<Tile>((byte)10, (byte)13);
-      sunToken = new SunToken();
       bgImg = DungeonQuest.loadImage("Board/Board.png");
-  		turnInd = 0;    
+		sun = new SunToken();
+  		turnInd = 0;
 		
       //Create heros based on names from menu
       players = new Hero[playerNames.length];
@@ -50,11 +50,15 @@ public class Panel extends JPanel{
          }
       }
       //Add starting corner towers
-		//						Center	Top,	  Right,  Bottom, Left
-      grid.add(new Tile("SOLID", "EXIT", "OPEN", "OPEN", "EXIT"), (byte)0, (byte)0);		//Top left tower
-      grid.add(new Tile("SOLID", "EXIT", "EXIT", "OPEN", "OPEN"), (byte)0, (byte)12);		//Top right
-      grid.add(new Tile("SOLID", "OPEN", "OPEN", "EXIT", "EXIT"), (byte)9, (byte)0);		//Bottom left
-      grid.add(new Tile("SOLID", "OPEN", "EXIT", "EXIT", "OPEN"), (byte)9, (byte)12);		//Bottom right
+		//						Center	Top,		Right,  	Bottom, 	Left
+      grid.add(new Tile('S', 		'E', 		'O', 		'O', 		'E'), (byte)0, (byte)0);		//Top left tower
+      grid.add(new Tile('S', 		'E', 		'E',	 	'O', 		'O'), (byte)0, (byte)12);		//Top right
+      grid.add(new Tile('S', 		'O', 		'O', 		'E', 		'E'), (byte)9, (byte)0);		//Bottom left
+      grid.add(new Tile('S', 		'O', 		'E', 		'E', 		'O'), (byte)9, (byte)12);		//Bottom right
+		//Add 2 treasure (dragon) rooms in center
+		//						Center	Top,		Right,  	Bottom, 	Left
+		grid.add(new Tile('G', 		'O', 		'O', 		'O', 		'O'), (byte)4, (byte)6);
+		grid.add(new Tile('G', 		'O', 		'O', 		'O', 		'O'), (byte)5, (byte)6);
    }
    
    //--Graphics--//
@@ -67,6 +71,9 @@ public class Panel extends JPanel{
 		//Draw background
       g.drawImage(bgImg, 0, 0, 1200, 750, null);
       
+		//Draw sun token/path
+		sun.draw(g);
+		
 		//Draw all tiles
       for(byte i = 0; i < grid.size(); i++){
          byte[] coord = grid.locationOf(grid.get(i));//In row, column form
@@ -82,14 +89,30 @@ public class Panel extends JPanel{
          h.draw(g);
 			
 		//Draw message
-		if(message != null && messageUpdates > 0){
-			g.setFont(new Font("Pristine", Font.PLAIN, 20));
-			g.drawString(message, boardX + 800, boardY + 590);
+		if(message != null){
+			double fade = (500 - messageUpdates) / 100.0;//Make message fade as it updates more and more
+			fade %= 1;
+			g.setColor(new Color((float)(127.0 / 255), 0, 0, 1 - (float)fade));
+			g.setFont(new Font("Pristina", Font.PLAIN, 35));
+			g.drawString(message, boardX + 800, boardY + 600);
 			messageUpdates--;
+			if(messageUpdates == 0)
+				message = null;
 		}
 		
 		//------//
-		if(messageUpdates > 0 || ! players[turnInd].doneGliding())
+		//Repaint if any gliding images have not reached desired position
+		boolean playersDoneGliding = true;
+			//If any players are not done gliding
+		for(byte i = 0; i < players.length; i++){
+			if(players[i] == null)
+				continue;
+			if(! players[i].doneGliding()){
+				playersDoneGliding = false;
+				break;
+			}
+		}
+		if(messageUpdates > 0 || ! playersDoneGliding || ! sun.doneGliding())
 			repaint(0, 0, 1200, 750);
    }
    
@@ -107,7 +130,7 @@ public class Panel extends JPanel{
    //pre:
    //post: Goes through each player, letting them take a turn
    public void turn(){
-      sunToken.move();//Advance day if needed
+	
    }
    
    //pre: k is a valid key code
@@ -130,84 +153,194 @@ public class Panel extends JPanel{
 		//Check if any tile is there
 		if(grid.get((byte)cR, (byte)cC) == null)
 			return;
-			
-		Tile curr = grid.get((byte)cR, (byte)cC);
 		
 		//Send tile at location mouse coordinates, RELATIVE TO TILE
-		byte direction = curr.mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
+		byte direction = grid.get((byte)cR, (byte)cC).mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
 		
 		//Do stuff based on direction of click (and tile contents)
-		if(direction == 0){
+		if(direction == 0){			//Center
 			searchTile((byte)cR, (byte)cC);
-		}else if(direction == 1){//North
-			if(performAction(curr.actionNeeded(direction)))
-				moveHero((byte)1);
-		}else if(direction == 2){//East
-			if(performAction(curr.actionNeeded(direction)))
-				moveHero((byte)2);
-		
-		}else if(direction == 3){//South
-			if(performAction(curr.actionNeeded(direction)))
-				moveHero((byte)3);
-		
-		}else if(direction == 4){//West
-			if(performAction(curr.actionNeeded(direction)))
-				moveHero((byte)4);
-		
+			
+		}else if(direction == 1){	//North
+			moveHero((byte)1);
+			
+		}else if(direction == 2){	//East
+			moveHero((byte)2);
+			
+		}else if(direction == 3){	//South
+			moveHero((byte)3);
+			
+		}else if(direction == 4){	//West
+			moveHero((byte)4);
 		}
 	}
    
    //--Helper--//
 	
-	private boolean performAction(char in){
-		return true;
+	//pre:
+	//post: Advances turnInd to match index of next non-null player in array players
+	private void advanceTurn(){
+		do{
+			turnInd++;
+			if(turnInd == players.length)
+				turnInd = 0;
+		}while(players[turnInd] == null);
+		if(turnInd == 0)
+			sun.advance();
 	}
 	
 	//pre: dir = 1, 2, 3, or 4
 	//post: Moves current turn hero in direction dir, if possible
 	private void moveHero(byte dir){
-		if(dir == 1)//North
-			players[turnInd].move((byte)-1, (byte)0);
 		
-		else if(dir == 2)//East
-			players[turnInd].move((byte)0, (byte)1);
+		byte moveR = 0, moveC = 0;//Amount for hero to move
 		
-		else if(dir == 3)//South
-			players[turnInd].move((byte)1, (byte)0);
+		//Figure out moveR and moveC
+		if(dir == 1)		//Moving north
+			moveR = -1;
+		else if(dir == 2)	//Moving east
+			moveC = 1;
+		else if(dir == 3)	//Moving	south
+			moveR = 1;
+		else if(dir == 4)	//Moving west
+			moveC = -1;
+		
+		byte cR = players[turnInd].getRow(),		//Hero's current row - column position
+			  cC = players[turnInd].getColumn();
+		
+		//Check if move is in bounds
+		if(cR + moveR < 0 || cR + moveR >= 10 ||
+			cC + moveC < 0 || cC + moveC >= 13)
+			return;
+		
+		//Check if current tile has an opening at moving direction, or perform needed action to move
+		char side = grid.get(cR, cC).getSide(dir);
+		if(side == 'W')				//If wall
+			return;
 			
-		else if(dir == 4)//West
-			players[turnInd].move((byte)0, (byte)-1);
+		else if(side == 'D'){		//If door
+			if(! openDoor())//Draw a door card
+				return;
+				
+		}else if(side == 'E'){		//If exit (of the dungeon)
+			if(players[turnInd].getTreasure() > 0)
+				System.out.print("");//Player should exit the dungeon (and game)
+				
+		}else if(side == 'P'){		//If portcullis
+			if(! movePortcullis())//Test hero's strength
+				return;
+		}
+		
+		/* MOVE MUST BE VALID AT THIS POINT */
+		
+		//Tell turn hero to move
+		players[turnInd].move(moveR, moveC);
+		
+		//Create tile at new location, if not previously there
+		if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)) == null){
+			char[] forceSides = new char[5];//Sides to force. Blank spots will be filled randomly as usual.
+			//Force an opening at Hero's entering direction
+			byte forceOpen = (byte)(dir + 2);
+			if(forceOpen >= 5)
+				forceOpen = (byte)(forceOpen % 4);
+			forceSides[forceOpen] = 'O';
+			//Force walls on all edges of board
+			if(cC + moveC <= 0)			//If on left edge
+				forceSides[4] = 'W';
+				
+			else if(cC + moveC >= 13)	//If on right edge
+				forceSides[3] = 'W';
+				
+			else if(cR + moveR <= 0)	//If on top edge
+				forceSides[1] = 'W';
 			
-		//Update screen to reflect changes
+			else if(cR + moveR >= 10)	//If on bottom edge
+				forceSides[3] = 'W';
+				
+			//Finally create actual tile
+			grid.add(new Tile(forceSides), (byte)(cR + moveR), (byte)(cC + moveC));
+		}
+		
+		//Give next player the turn
+		advanceTurn();
+		//Reflect any graphical changes
 		repaint(0, 0, 1200, 750);
 	}
 	
 	private void searchTile(byte r, byte c){
 		//Draw search card
+		
+		//Give next player the turn
+		advanceTurn();
 	}
 	
-	private boolean drawDoor(){
+	//Simulate a draw of a door card
+	private boolean openDoor(){
+		if(Math.random() < 0.3){
+			if(Math.random() < 0.5)
+				setMessage("The door creaks open...");
+			else
+				setMessage("Creak...");
+			return true;
+		}else{
+			if(Math.random() < 0.5)
+				setMessage("It will not budge...");
+			else
+				setMessage("The door is shut tight...");
+			return false;
+		}
+	}
+	
+	//Check if current hero can move a portcullis (by luck and strength)
+	private boolean movePortcullis(){
 		return true;
 	}
 	
-   //--Sun Token Class--//
-   
-   private class SunToken{
-      
-      private byte trackPosition;                     //Spaces advanced along sun track
-      private final int[] probs = {1};
-      
-      public SunToken(){
-         trackPosition = 0;
-      }
-      
-      //--Mutate--//
-      
-      //pre:
-      //post: Advances sun token based on probability
-      public void move(){
-         if(DungeonQuest.rollDice((byte)1) <= probs[trackPosition])
-            trackPosition++;
-      }
-   }
+	//--Sun Token Class--//
+	
+	private class SunToken{
+		private int x;							//Graphical horizontal position
+		private byte iter;					//How many steps along (out of ) on "sun path"
+		
+		//--Initialize--//
+		
+		public SunToken(){
+			x = Panel.boardX;
+			iter = 0;
+		}
+		
+		//--Graphics--//
+		
+		//pre: g != null
+		//post: Implements gliding if neccessary, and draws token an current x
+		public void draw(Graphics g){
+			//Draw actual token
+			if(x < iter * 25 + Panel.boardX)//Glide towards each position
+				x++;
+			g.drawImage(DungeonQuest.loadImage("Board/SunToken.png"), x, 15, null);
+		}
+		
+		//--Access--//
+		
+		//pre:
+		//post: Returns true if x matches position of iter
+		public boolean doneGliding(){
+			return x == iter * 25 + Panel.boardX;
+		}
+		
+		//pre:
+		//post: Returns true if it is night time (game over, all heros in dungeon die), false otherwise
+		public boolean isNight(){
+			return iter >= 30;
+		}
+		
+		//--Mutate--//
+		
+		//pre:
+		//post: Advances token's location by one iteration
+		public void advance(){
+			if(iter < 30)
+				iter++;
+		}
+	}
 }

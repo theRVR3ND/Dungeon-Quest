@@ -22,7 +22,6 @@ public class DungeonQuest{
    //--Main--//
 
    public static void main(String[] args){
-   
       //--Initialize--//
       
       f = new JFrame("Dungeon Quest || Begin your Quest...");

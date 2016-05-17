@@ -105,9 +105,9 @@ public class DungeonQuest{
       
       public void mouseClicked(MouseEvent e){
 			if(m != null)			//If menu open
-				m.mouseClick(e.getX() - 10, e.getY() - 30);
+				m.mouseClick(e.getX() - 3, e.getY() - 26);
 			else if(p != null)	//If game board panel open
-				p.mouseClick(e.getX() - 10, e.getY() - 30);
+				p.mouseClick(e.getX() - 3, e.getY() - 26);
 		}
       
       public void mouseReleased(MouseEvent e){}

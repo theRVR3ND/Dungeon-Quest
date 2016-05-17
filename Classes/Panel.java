@@ -23,6 +23,7 @@ public class Panel extends JPanel{
    
    //--Initialize--//
 
+	//ARGS: playerNames is array of names of Heros, one for each person playing
    public Panel(String[] playerNames){
 		grid = new SparseMatrix<Tile>((byte)10, (byte)13);
       bgImg = DungeonQuest.loadImage("Board/Board.png");
@@ -95,6 +96,7 @@ public class Panel extends JPanel{
 			
 		//Draw message
 		if(message != null){
+			messageUpdates--;
 			if(messageUpdates <= 30){
 				double fade = (30 - messageUpdates) / 30.0;//Make message fade as it updates more and more
 				g.setColor(new Color((float)(127.0 / 255), 0, 0, 1 - (float)fade));
@@ -103,7 +105,6 @@ public class Panel extends JPanel{
 			}
 			g.setFont(new Font("Pristina", Font.PLAIN, 35));
 			g.drawString(message, boardX + 800, boardY + 600);
-			messageUpdates--;
 			if(messageUpdates == 0)
 				message = null;
 		}
@@ -226,6 +227,9 @@ public class Panel extends JPanel{
 				sun.advance();
 			}
 		}while(players[turnInd] == null);
+		//Make message fade soon(er), we don't want it persisting too long
+		if(messageUpdates > 50)
+			messageUpdates = 50;
 	}
 	
 	//pre: dir = 1, 2, 3, or 4
@@ -246,6 +250,17 @@ public class Panel extends JPanel{
 		
 		byte cR = players[turnInd].getRow(),		//Hero's current row - column position
 			  cC = players[turnInd].getColumn();
+		char side = grid.get(cR, cC).getSide(dir);//Side symbol which hero is moving to
+		
+		//Check if hero is exiting dungeon
+		if(side == 'E'){//If exit (of the dungeon)
+			if(players[turnInd].getTreasure() > 0){
+				players[turnInd].move(moveR, moveC);//Make Hero glide out of dungeon like a magical unicorn
+				advanceTurn();
+			}else
+				setMessage("You may not exit without treasure...");
+			return;
+		}
 		
 		//Check if move is in bounds
 		if(cR + moveR < 0 || cR + moveR >= 10 ||
@@ -253,7 +268,6 @@ public class Panel extends JPanel{
 			return;
 		
 		//Check if current tile has an opening at moving direction, or perform needed action to move
-		char side = grid.get(cR, cC).getSide(dir);
 		if(side == 'W')				//If wall
 			return;
 			
@@ -262,14 +276,6 @@ public class Panel extends JPanel{
 				advanceTurn();
 				return;
 			}
-				
-		}else if(side == 'E'){		//If exit (of the dungeon)
-			if(players[turnInd].getTreasure() > 0){
-				players[turnInd] = null;//Player exits the dungeon (and game)
-				advanceTurn();
-			}else
-				setMessage("You may not exit without treasure...");
-			return;
 		}else if(side == 'P'){		//If portcullis
 			if(! movePortcullis()){//Test hero's strength
 				advanceTurn();
@@ -313,6 +319,8 @@ public class Panel extends JPanel{
 		repaint(0, 0, 1200, 750);
 	}
 	
+	//pre:
+	//post: Performs action dictated by contents of center of tile at (r, c) in grid
 	private void centerAction(byte r, byte c){
 		//Figure out what is in the center
 		char cent = grid.get(r, c).getSide((byte)0);
@@ -344,7 +352,8 @@ public class Panel extends JPanel{
 		repaint(0, 0, 1200, 750);
 	}
 	
-	//Simulate a draw of a door card
+	//pre:
+	//post: Simulates drawing of a door card
 	private boolean openDoor(){
 		if(Math.random() < 0.3){
 			if(Math.random() < 0.5)
@@ -361,7 +370,8 @@ public class Panel extends JPanel{
 		}
 	}
 	
-	//Check if current hero can move a portcullis (by luck and strength)
+	//pre:
+	//post: Returns true if current hero can move a portcullis (by luck and strength), false otherwise
 	private boolean movePortcullis(){
 		return true;
 	}

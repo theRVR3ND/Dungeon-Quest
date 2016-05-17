@@ -16,6 +16,8 @@ public class Tile{
 														Cave-in = 'C'
 														Trap = 'T'
 														Inky Hole = 'I'
+														Treasure/Gold = 'G'
+														Rotating = 'R'
 													Wall contents: 
 														Wall = 'W'
 														Open = 'O'
@@ -75,6 +77,8 @@ public class Tile{
 	
 	//--Access--//
 	
+	//pre:
+	//post: Returns this tile's image
    public BufferedImage getImage(){
       return img;
    }
@@ -143,26 +147,28 @@ public class Tile{
 	
    //--Helper--//
    
-   private void randomGen(){
+	//pre: sides has been initialized
+	//post: Randomly creates contents of this tile in sides[] if not already created
+	private void randomGen(){
       //Generate center spot (hole, solid, cave-in, trap, dark inky hole) if not already generated
       if(sides[0] == '\0'){
          double gen = Math.random();
-  			if(gen < 0.3)       
+  			if(gen < 0.4)       
 				sides[0] = 'S';		//Solid
 				
-         else if(gen < 0.4)
+         else if(gen < 0.5)
             sides[0] = 'H';		//Hole
 				
-         else if(gen < 0.5)
+         else if(gen < 0.6)
             sides[0] = 'C';		//Cave-in
 				
-         else if(gen < 0.6)
+         else if(gen < 0.7)
             sides[0] = 'T';		//Trap
 				
-			else if(gen < 0.7)
+			else if(gen < 0.8)
 				sides[0] = 'G';		//Gold (treasure)
 				
-			else if(gen < 0.8)
+			else if(gen < 0.9)
 				sides[0] = 'R';		//Rotating room
 				
          else//if(gen <= 1.00)
@@ -178,13 +184,13 @@ public class Tile{
 				}
 			
             double gen = Math.random();
-            if(gen <= 0.3)
+            if(gen <= 0.5)
                sides[i] = 'W';	//Wall
          	
-				else if(gen < 0.40)
+				else if(gen < 0.7)
             	sides[i] = 'O';	//Open
 				        
-            else if(gen <= 0.6)
+            else if(gen <= 0.8)
                sides[i] = 'D';	//Door
             
             else//if(gen <= 1.00)

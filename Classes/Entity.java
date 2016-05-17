@@ -51,26 +51,7 @@ public abstract class Entity{
 		g.drawImage(DungeonQuest.loadImage(imgDir), x, y, null);
    }
 	
-	//--Mutate--//
-	
-	//pre: 0 <= r < 13, 0 <= c < 9
-   //post: Sets Hero position to (r, c), also sets x and y
-   public void setPosition(byte r, byte c){
-      this.r = r;
-      this.c = c;
-      
-		x = c * 60 + Panel.boardX + 22;
-		y = r * 60 + Panel.boardY + 17;
-   }
-	
-	//pre: 
-	//post: Changes r and c based on rMove and cMove, but does not change x, y graphic position
-	public void move(byte rMove, byte cMove){
-		r += rMove;
-		c += cMove;
-	}
-	
-	//--Access--//
+   //--Access--//
 	
 	//pre:
 	//post:
@@ -94,5 +75,36 @@ public abstract class Entity{
 	//post: Returns column position of Hero on Panel grid 
 	public byte getColumn(){
 		return c;
+	}
+   
+   //pre:
+   //post: Returns x location of hero
+   public int getX(){
+      return x;
+   }
+   
+   //pre:
+   //post: Returns y location of hero
+   public int getY(){
+      return y;
+   }
+   
+	//--Mutate--//
+	
+	//pre: 0 <= r < 13, 0 <= c < 9
+   //post: Sets Hero position to (r, c), also sets x and y
+   public void setPosition(byte r, byte c){
+      this.r = r;
+      this.c = c;
+      
+		x = c * 60 + Panel.boardX + 22;
+		y = r * 60 + Panel.boardY + 17;
+   }
+	
+	//pre: 
+	//post: Changes r and c based on rMove and cMove, but does not change x, y graphic position
+	public void move(byte rMove, byte cMove){
+		r += rMove;
+		c += cMove;
 	}
 }

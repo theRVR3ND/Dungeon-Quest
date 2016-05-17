@@ -11,6 +11,7 @@ public class Hero extends Entity{
 	private final byte maxLife;				//Max life of Hero. Equivallent to initial life.
    private byte lifeValue;                //Amout of health of Hero
 	private byte treasure;						//Amout of treasure player has
+   private byte numSearches;              //Number of consecutive searches this hero has performed
    private final byte strength,           //Hero's might and stamina
                       agility,            //Hero's spped ability to react quickly
                       armor,              //Hero's ability to prevent or ignore wounds
@@ -160,8 +161,23 @@ public class Hero extends Entity{
    public String getFlavorText(){
       return flavorText;
    }
+   
+   //pre:
+   /* 
+      post: Returns number of consecutive searches 
+      hero has performed in current room
+   */
+   public byte getNumSearches(){
+      return numSearches;
+   }
 	
    //--Mutate--//
+   
+   //pre:
+   //post: Increases numSearches by one
+   public void searched(){
+      numSearches++;
+   }
    
 	//pre:
 	//post:
@@ -173,5 +189,12 @@ public class Hero extends Entity{
    //post: Reduces health value by healthDeduction
    public void hurtBy(byte healthDeduction){
       lifeValue -= healthDeduction;
+   }
+   
+   //pre:
+   //post: Calls super.move() and resets searching counter
+   public void move(byte r, byte c){
+      super.move(r, c);
+      numSearches = 0;
    }
 }

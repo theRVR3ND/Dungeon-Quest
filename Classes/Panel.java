@@ -90,10 +90,16 @@ public class Panel extends JPanel{
 		g.drawRect(boardX - 10, boardY - 10, 800, 620);
 		
       //Draw all heros whom are still in game
-      for(Hero h : players)
-			if(h != null)
-         	h.draw(g);
-			
+      for(Hero h : players){
+			if(h == null)
+            continue;
+         h.draw(g);
+         //Check if hero has glided out of dungeon area
+         if(h.getX() < boardX - 10 || h.getX() > boardX + 810 || 
+            h.getY() < boardY - 10 || h.getY() > boardY + 610)
+            h = null;
+	   }
+      
 		//Draw message
 		if(message != null){
 			messageUpdates--;
@@ -104,7 +110,26 @@ public class Panel extends JPanel{
 				g.setColor(new Color(127, 0, 0));
 			}
 			g.setFont(new Font("Pristina", Font.PLAIN, 35));
-			g.drawString(message, boardX + 800, boardY + 600);
+         //Split message with carriage return (if present), draw with seperate line each time
+         if(message.indexOf("\n") < 0){//If no carriage returns present
+            g.drawString(message, boardX + 800, boardY + 600);
+         }else{//If at least one carriage return
+            byte lineNum = 0;//Line of text we are one (for drawing)
+            byte lastReturn = 0;//Index of carriage return per line
+            do{
+               //Draw each section between carriage returns, with 40 pixel vertical spacing
+   			   g.drawString(message.substring(lastReturn, message.indexOf("\n", lastReturn + 1)), 
+                            boardX + 800, boardY + 560 + lineNum * 40);
+               lastReturn = (byte)message.indexOf("\n", lastReturn + 1);//Find next carriage return
+               lineNum++;
+                  //If we have just drawn second to last section, draw last section and break
+               if(message.indexOf("\n", lastReturn + 1) < 0){
+                  g.drawString(message.substring(lastReturn), boardX + 800, boardY + 560 + lineNum * 40);
+                  break;
+               }
+            }while(lastReturn >= 0);
+         }
+         //"Delete" message if needed (reached end of updating cycle)
 			if(messageUpdates == 0)
 				message = null;
 		}
@@ -258,7 +283,7 @@ public class Panel extends JPanel{
 				players[turnInd].move(moveR, moveC);//Make Hero glide out of dungeon like a magical unicorn
 				advanceTurn();
 			}else
-				setMessage("You may not exit without treasure...");
+				setMessage("You may not exit without\ntreasure...");
 			return;
 		}
 		
@@ -325,8 +350,18 @@ public class Panel extends JPanel{
 		//Figure out what is in the center
 		char cent = grid.get(r, c).getSide((byte)0);
 		if(cent == 'S' || cent == 'R'){			//Solid ground or rotating room (search)
+         //Check if hero has searched twice consecutively in current room without moving
+         if(players[turnInd].getNumSearches() >= 2){
+            setMessage("You must move on now...");
+            return;
+         }
+         //Tell hero to keep track of number of searches
+         players[turnInd].searched();
+         //Actual probability/searching
 			if(Math.random() < 0.5){
-				setMessage("You find something");
+            byte gen = (byte)(Math.random() * 50 + 25);
+            setMessage("You find " + gen + " pieces of gold...");
+            players[turnInd].addTreasure(gen);
 			}else{
 				setMessage("Nothing shows up");
 			}
@@ -380,7 +415,7 @@ public class Panel extends JPanel{
 	
 	private class SunToken{
 		private int x;							//Graphical horizontal position
-		private byte iter;					//How many steps along (out of ) on "sun path"
+		private byte iter;					//How many steps along (out of 30) on "sun path"
 		
 		//--Initialize--//
 		

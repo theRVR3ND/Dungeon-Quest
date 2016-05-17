@@ -184,7 +184,7 @@ public class Tile{
 				}
 			
             double gen = Math.random();
-            if(gen <= 0.5)
+            if(gen <= 0.3)
                sides[i] = 'W';	//Wall
          	
 				else if(gen < 0.7)

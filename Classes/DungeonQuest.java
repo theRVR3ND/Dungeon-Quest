@@ -55,10 +55,6 @@ public class DungeonQuest{
       f.repaint();
 		
       //--The GAME--//
-      
-      while(true){
-      
-      }
    }
    
    //--Static Utility Classes--//

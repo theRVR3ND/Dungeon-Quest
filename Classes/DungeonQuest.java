@@ -55,6 +55,13 @@ public class DungeonQuest{
       f.repaint();
 		
       //--The GAME--//
+		
+		while(p.gameGoing()){
+			System.out.print("");
+		}
+		
+		//--End Game--//
+		System.exit(0);
    }
    
    //--Static Utility Classes--//

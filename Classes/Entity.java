@@ -27,6 +27,7 @@ public abstract class Entity{
 		y = r * 60 + Panel.boardY + 17;
 	}
 	
+	//ARGS: name is name of this Entity (Hero or Monster character name)
 	public Entity(String name){
 		this.name = name;
 		r = 0;
@@ -37,6 +38,11 @@ public abstract class Entity{
 	
 	//--Graphics--//
 	
+	//pre: g != null, imgDir != null
+	/*
+		post: Draws Entity at (x, y) in graphics, while changing
+				x and y if not matching desired (r, c) position
+	*/
 	public void draw(String imgDir, Graphics g){
 		//Glide towards wanted location
    	if(x < c * 60 + Panel.boardX + 22)
@@ -54,7 +60,7 @@ public abstract class Entity{
    //--Access--//
 	
 	//pre:
-	//post:
+	//post: Returns name of this Entity
 	public String getName(){
 		return name;
 	}

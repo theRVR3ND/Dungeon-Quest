@@ -90,15 +90,9 @@ public class Panel extends JPanel{
 		g.drawRect(boardX - 10, boardY - 10, 800, 620);
 		
       //Draw all heros whom are still in game
-      for(Hero h : players){
-			if(h == null)
-            continue;
-         h.draw(g);
-         //Check if hero has glided out of dungeon area
-         if(h.getX() < boardX - 10 || h.getX() > boardX + 810 || 
-            h.getY() < boardY - 10 || h.getY() > boardY + 610)
-            h = null;
-	   }
+      for(Hero h : players)
+			if(h != null)
+         	h.draw(g);
       
 		//Draw message
 		if(message != null){
@@ -135,7 +129,8 @@ public class Panel extends JPanel{
 		}
 		
 		//------//
-		//Repaint if any gliding images have not reached desired position
+		
+		//Check if any gliding images have not reached desired position
 		boolean playersDoneGliding = true;
 			//If any players are not done gliding
 		for(byte i = 0; i < players.length; i++){
@@ -146,6 +141,22 @@ public class Panel extends JPanel{
 				break;
 			}
 		}
+		
+      /*
+			Check if hero has glided out of dungeon area, if so, repaint to
+			"hide" Hero (repaint over)
+		*/
+		for(byte i = 0; i < players.length; i++){
+			if(players[i] == null)
+				continue;
+	      if(players[i].getX() < boardX - 10 || players[i].getX() > boardX + 775 || 
+	         players[i].getY() < boardY - 10 || players[i].getY() > boardY + 590){
+	         players[i] = null;
+				advanceTurn();
+				playersDoneGliding = false;
+			}
+		}
+		
 		//Rotate current Hero's room, if it is a rotating room
 		if(playersDoneGliding){
 				//Find "previous" player, as advanceTurn() has already been called
@@ -157,27 +168,30 @@ public class Panel extends JPanel{
 			}while(players[prevInd] == null);
 			
 			Hero h = players[prevInd];
-			if(grid.get(h.getRow(), h.getColumn()).getSide((byte)0) == 'R'){//If rotating room
-				//Rotate room's sides by 180
-				char[] sides = grid.get(h.getRow(), h.getColumn()).getSides();
-					//Swap the opposite tile sides
-				char temp = sides[1];	//Swaping top and bottom
-				sides[1] = sides[3];
-				sides[3] = temp;
-				
-				temp = sides[2];			//Swaping left and right
-				sides[2] = sides[4];
-				sides[4] = temp;
-				
-				//Turn room into regular type (so it does not rotate anymore)
-				sides[0] = 'S';
-				
-				//Implement changes
-				grid.get(h.getRow(), h.getColumn()).setSides(sides);
-				//Reflect changes
-				repaint(0, 0, 1200, 750);
+			if(grid.get(h.getRow(), h.getColumn()) != null){
+				if(grid.get(h.getRow(), h.getColumn()).getSide((byte)0) == 'R'){//If rotating room
+					//Rotate room's sides by 180
+					char[] sides = grid.get(h.getRow(), h.getColumn()).getSides();
+						//Swap the opposite tile sides
+					char temp = sides[1];	//Swaping top and bottom
+					sides[1] = sides[3];
+					sides[3] = temp;
+					
+					temp = sides[2];			//Swaping left and right
+					sides[2] = sides[4];
+					sides[4] = temp;
+					
+					//Turn room into regular type (so it does not rotate anymore)
+					sides[0] = 'S';
+					
+					//Implement changes
+					grid.get(h.getRow(), h.getColumn()).setSides(sides);
+					//Reflect changes
+					repaint(0, 0, 1200, 750);
+				}
 			}
 		}
+		
 		//Check if we need to repaint screen (will stop repainting to save resources)
 		if(message != null || ! playersDoneGliding || ! sun.doneGliding()){
 			while(System.currentTimeMillis() < startTime + 1000.0 / MAX_FPS)//Wait so max frame updates per second is maintained
@@ -188,13 +202,22 @@ public class Panel extends JPanel{
    
 	//--Access--//
 	
+	//pre:
+	//post: Returns true if at least one player is still in game
+	public boolean gameGoing(){
+		for(Hero h : players)
+			if(h != null)//All dead/exited players will be or have been set to null
+				return true;
+		return false;
+	}
+	
    //--Mutate--//
    
 	//pre: message != null
 	//post: Sets message to message and resets update counter
 	public void setMessage(String message){
 		this.message = message;
-		messageUpdates = 100;
+		messageUpdates = 50;
 		//Reflect any graphical changes
 		repaint(0, 0, 1200, 750);
 	}
@@ -204,11 +227,11 @@ public class Panel extends JPanel{
 	public void mouseClick(int x, int y){
 		//Make sure all players are done gliding before anything
 		for(Hero h : players)
-			if(! h.doneGliding())
+			if(h != null && ! h.doneGliding())
 				return;
 		//Figure out which tile is being clicked
 		int cR = (y - boardY) / 60,//Click column (of board)
-			 cC = (x - boardX) / 60;//		 row
+			 cC = (x - boardX) / 60;//		  row
 		
 		//Check if tile clicked "contains" Hero whom has the turn
 		if(cR != players[turnInd].getRow() || cC != players[turnInd].getColumn())
@@ -245,16 +268,15 @@ public class Panel extends JPanel{
 	//post: Advances turnInd to match index of next non-null player in array players
 	private void advanceTurn(){
 		//Advancing turnInd
-		do{
+		for(byte i = 0; i < players.length; i++){
 			turnInd++;
 			if(turnInd == players.length){
 				turnInd = 0;
 				sun.advance();
 			}
-		}while(players[turnInd] == null);
-		//Make message fade soon(er), we don't want it persisting too long
-		if(messageUpdates > 50)
-			messageUpdates = 50;
+			if(players[turnInd] != null)
+				break;
+		}
 	}
 	
 	//pre: dir = 1, 2, 3, or 4
@@ -282,6 +304,7 @@ public class Panel extends JPanel{
 			if(players[turnInd].getTreasure() > 0){
 				players[turnInd].move(moveR, moveC);//Make Hero glide out of dungeon like a magical unicorn
 				advanceTurn();
+				repaint(0, 0, 1200, 750);
 			}else
 				setMessage("You may not exit without\ntreasure...");
 			return;

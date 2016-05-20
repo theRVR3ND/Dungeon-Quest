@@ -9,7 +9,6 @@ public class Hero extends Entity{
    //Statistics about a hero (all information taken from rule book)
    
 	private final byte maxLife;				//Max life of Hero. Equivallent to initial life.
-   private byte lifeValue;                //Amout of health of Hero
 	private byte treasure;						//Amout of treasure player has
    private byte numSearches;              //Number of consecutive searches this hero has performed
    private final byte strength,           //Hero's might and stamina
@@ -24,9 +23,8 @@ public class Hero extends Entity{
    
    public Hero(){
 		super();
-      lifeValue = 1;
 		treasure = 0;
-		maxLife = lifeValue;
+		maxLife = super.getHealth();
       strength = 0;
       agility = 0;
       armor = 0;
@@ -70,12 +68,12 @@ public class Hero extends Entity{
       specialAbility = 	text[1];
       flavorText = 		text[2];
 		
-      lifeValue =	stats[0];
+      super.setHealth(stats[0]);
       strength = 	stats[1];
       agility = 	stats[2];
       armor = 		stats[3];
       luck = 		stats[4];
-		maxLife = lifeValue;
+		maxLife = super.getHealth();
 		treasure = 0;
    }
    
@@ -89,12 +87,12 @@ public class Hero extends Entity{
       specialAbility = 	text[1];
       flavorText = 		text[2];
 		
-      lifeValue =	stats[0];
+      super.setHealth(stats[0]);
       strength = 	stats[1];
       agility = 	stats[2];
       armor = 		stats[3];
       luck = 		stats[4];
-		maxLife = lifeValue;
+		maxLife = super.getHealth();
 		treasure = 0;
    }
    
@@ -107,23 +105,11 @@ public class Hero extends Entity{
    }
    
    //--Access--//
-   
-   //pre: 
-   //post: Returns life value of Hero
-   public byte getLifeValue(){
-      return lifeValue;
-   }
 	
 	//pre:
 	//post: Returns treasure which hero has accquired
 	public byte getTreasure(){
 		return treasure;
-	}
-	
-	//pre:
-	//post: Returns true if live value > 0
-	public boolean isAlive(){
-		return lifeValue != 0;
 	}
    
    //pre: 
@@ -185,10 +171,12 @@ public class Hero extends Entity{
 		treasure += i;
 	}
 	
-   //pre: healthDeduction > 0
-   //post: Reduces health value by healthDeduction
-   public void hurtBy(byte healthDeduction){
-      lifeValue -= healthDeduction;
+   //pre:
+   //post: Changes health value by change
+   public void changeHealth(byte change){
+      super.setHealth((byte)(super.getHealth() + change));
+      if(super.getHealth() > maxLife)
+         super.setHealth(maxLife);
    }
    
    //pre:

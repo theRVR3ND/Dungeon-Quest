@@ -4,9 +4,6 @@ import java.awt.Graphics;
 
 public class Monster extends Entity{
 	
-	private byte attackValue,				//Strength of monster
-					 attackType;				//Ranged (0), melee (1), or magic (3) attack
-	
 	//--Initialize--//
 	
 	/*
@@ -24,6 +21,31 @@ public class Monster extends Entity{
 	}
 	
 	//--Access--//
+	
+	//pre: type is either 1 (Attack or Wait and See) or 2 (Escape)
+	//post: Returns random action which results in encounter with Hero
+	public char getAction(byte type){
+		if(type == 1){			 //Player wants to fight
+			if(Math.random() < 0.8){//Combat!
+				super.setHealth((byte)(Math.random() * 4 + 5));
+			}
+			return 'C';
+		}else{//if(type == 2)	Player attempts to flee
+			if(Math.random() < 0.8){
+				return 'E';//Let player escape
+			}else{
+				super.setHealth((byte)(Math.random() * 6 + 5));//Combat
+				return 'C';
+			}
+		}
+		return 'C';
+	}
+	
+	//pre:
+	//post:
+	public byte getAttack(){
+		return (byte)(1);
+	}
 	
 	//--Mutate--//
 }

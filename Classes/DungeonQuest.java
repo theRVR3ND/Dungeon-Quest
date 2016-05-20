@@ -27,7 +27,7 @@ public class DungeonQuest{
       f = new JFrame("Dungeon Quest || Begin your Quest...");
       f.setSize(1200, 750);
       f.setLocation(20, 20);
-      f.setResizable(false);//Frame size will be changed by (+) and (-) keys
+      f.setResizable(false);
       f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       f.addMouseListener(new mouseListen());
       

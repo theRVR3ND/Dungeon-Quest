@@ -5,6 +5,7 @@ import java.awt.Graphics;
 public abstract class Entity{
 	
 	private final String name;				//Name of this entity
+	private byte health;						//Life value of entity
 	private byte r, c;						//Position in panel's board
 	private int x, y;							//Position on screen (for gliding)
 	
@@ -14,6 +15,7 @@ public abstract class Entity{
 		name = "";
 		r = 0;
 		c = 0;
+		health = 1;
 		x = c * 60 + Panel.boardX + 22;
 		y = r * 60 + Panel.boardY + 17;
 	}
@@ -23,6 +25,7 @@ public abstract class Entity{
 		this.name = name;
 		this.r = r;
 		this.c = c;
+		health = 1;
 		x = c * 60 + Panel.boardX + 22;
 		y = r * 60 + Panel.boardY + 17;
 	}
@@ -32,6 +35,7 @@ public abstract class Entity{
 		this.name = name;
 		r = 0;
 		c = 0;
+		health = 1;
 		x = Panel.boardX + 22;
 		y = Panel.boardY + 22;
 	}
@@ -65,6 +69,10 @@ public abstract class Entity{
 		return name;
 	}
 	
+	public byte getHealth(){
+		return health;
+	}
+	
 	//pre:
 	//post: Returns true if (x, y) position have "glided" to match (r, c)
 	public boolean doneGliding(){
@@ -96,6 +104,12 @@ public abstract class Entity{
    }
    
 	//--Mutate--//
+	
+	//pre:
+	//post: Sets this.health to health
+	public void setHealth(byte health){
+		this.health = health;
+	}
 	
 	//pre: 0 <= r < 13, 0 <= c < 9
    //post: Sets Hero position to (r, c), also sets x and y

@@ -143,18 +143,25 @@ public class Panel extends JPanel{
 		}
 		
       /*
-			Check if hero has glided out of dungeon area, if so, repaint to
-			"hide" Hero (repaint over)
+			Check if hero has glided out of dungeon area or is dead, 
+			if so, repaint to "hide" Hero (repaint over)
 		*/
 		for(byte i = 0; i < players.length; i++){
 			if(players[i] == null)
 				continue;
+				//If out of dungeon
 	      if(players[i].getX() < boardX - 10 || players[i].getX() > boardX + 775 || 
 	         players[i].getY() < boardY - 10 || players[i].getY() > boardY + 590){
-	         players[i] = null;
-				advanceTurn();
-				playersDoneGliding = false;
-			}
+				setMessage(players[i].getName() + " leaves the Dungeon...");
+				//If Hero is killed
+			}else if(players[i].getHealth() <= 0){
+				setMessage(players[i].getName() + " has been smitten...");
+			}else
+				continue;
+			//Do the following of either out of dungeon or dead
+			players[i] = null;
+			advanceTurn();
+			playersDoneGliding = false;
 		}
 		
 		//Rotate current Hero's room, if it is a rotating room
@@ -181,6 +188,16 @@ public class Panel extends JPanel{
 					sides[2] = sides[4];
 					sides[4] = temp;
 					
+					//Make any sides touching outside walls into walls
+					if(h.getRow() == 0)				//Force top wall
+						sides[1] = 'W';
+					else if(h.getRow() == 9)		//Force bottom wall
+						sides[3] = 'W';
+					else if(h.getColumn() == 0)	//Force left wall
+						sides[4] = 'W';
+					else if(h.getColumn() == 12)	//Force right wall
+						sides[2] = 'W';
+						
 					//Turn room into regular type (so it does not rotate anymore)
 					sides[0] = 'S';
 					
@@ -199,15 +216,23 @@ public class Panel extends JPanel{
 			repaint(0, 0, 1200, 750);
 		}
    }
+	//--End graphics--//
    
 	//--Access--//
 	
 	//pre:
-	//post: Returns true if at least one player is still in game
+	//post: Returns true if at least one player is still in game or message is still up
 	public boolean gameGoing(){
+			//Check if at least one live hero
 		for(Hero h : players)
 			if(h != null)//All dead/exited players will be or have been set to null
 				return true;
+		/*
+			//If message still up
+		if(messageUpdates > 0){
+			repaint(0, 0, 1200, 750);
+			return true;
+		}*/
 		return false;
 	}
 	
@@ -279,7 +304,7 @@ public class Panel extends JPanel{
 		}
 	}
 	
-	//pre: dir = 1, 2, 3, or 4
+	//pre: dir = 1 (North), 2 (East), 3 (South), or 4 (West)
 	//post: Moves current turn hero in direction dir, if possible
 	private void moveHero(byte dir){
 		
@@ -320,13 +345,18 @@ public class Panel extends JPanel{
 			return;
 			
 		else if(side == 'D'){		//If door
-			if(! openDoor()){//Draw a door card
+			if(Math.random() < 0.4){//Draw a door card
+				setMessage("The door is shut tight...");
 				advanceTurn();
 				return;
+			}else{//Player opens the door
+				setMessage("The door creaks open...");
 			}
 		}else if(side == 'P'){		//If portcullis
-			if(! movePortcullis()){//Test hero's strength
+			if(players[turnInd].getStrength() > (byte)(Math.random() * 8 + 3)){//Test hero's strength
 				advanceTurn();
+			}else{//If unable to move portcullis
+				setMessage(players[turnInd].getName() + " is unable to lift the\nheavy grate...");
 				return;
 			}
 		}
@@ -375,8 +405,16 @@ public class Panel extends JPanel{
 		if(cent == 'S' || cent == 'R'){			//Solid ground or rotating room (search)
          //Check if hero has searched twice consecutively in current room without moving
          if(players[turnInd].getNumSearches() >= 2){
-            setMessage("You must move on now...");
-            return;
+				//Check if no moves are actually possible
+				char[] sides = grid.get(r, c).getSides();
+				if(sides[1] == 'W' && sides[2] == 'W' && sides[3] == 'W' && sides[4] == 'W'){
+					setMessage(players[turnInd].getName() + " is stuck forever in the dungeon");
+					players[turnInd].changeHealth((byte)(-100));
+					repaint(0, 0, 1200, 750);
+				}else{
+	            setMessage("You must move on now...");
+				}
+	         return;
          }
          //Tell hero to keep track of number of searches
          players[turnInd].searched();
@@ -390,10 +428,11 @@ public class Panel extends JPanel{
 			}
 		}else if(cent == 'G'){						//Treasure room (draw treasure card)
 			if(Math.random() < 0.5){
-				setMessage("Much gold");
+				setMessage("The Dragon slumbers...");
 				players[turnInd].addTreasure((byte)(Math.random() * 50 + 50));
 			}else{
-				setMessage("Rekt");
+				setMessage("Kalladra awakes and burns\n" + players[turnInd].getName() + " with Dragon Breath");
+				players[turnInd].changeHealth((byte)(-100));
 			}
 		}/*else if(cent == 'S'){ 
 		
@@ -408,30 +447,6 @@ public class Panel extends JPanel{
 		advanceTurn();
 		//Reflect any graphical changes
 		repaint(0, 0, 1200, 750);
-	}
-	
-	//pre:
-	//post: Simulates drawing of a door card
-	private boolean openDoor(){
-		if(Math.random() < 0.3){
-			if(Math.random() < 0.5)
-				setMessage("The door creaks open...");
-			else
-				setMessage("Creak...");
-			return true;
-		}else{
-			if(Math.random() < 0.5)
-				setMessage("It will not budge...");
-			else
-				setMessage("The door is shut tight...");
-			return false;
-		}
-	}
-	
-	//pre:
-	//post: Returns true if current hero can move a portcullis (by luck and strength), false otherwise
-	private boolean movePortcullis(){
-		return true;
 	}
 	
 	//--Sun Token Class--//

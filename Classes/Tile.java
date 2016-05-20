@@ -16,7 +16,7 @@ public class Tile{
 														Cave-in = 'C'
 														Trap = 'T'
 														Inky Hole = 'I'
-														Treasure/Gold = 'G'
+														Dragonfire Dungeon (GOLD!) = 'G'
 														Rotating = 'R'
 													Wall contents: 
 														Wall = 'W'
@@ -164,9 +164,6 @@ public class Tile{
 				
          else if(gen < 0.7)
             sides[0] = 'T';		//Trap
-				
-			else if(gen < 0.8)
-				sides[0] = 'G';		//Gold (treasure)
 				
 			else if(gen < 0.9)
 				sides[0] = 'R';		//Rotating room

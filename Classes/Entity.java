@@ -58,7 +58,7 @@ public abstract class Entity{
 		else if(y > r * 60 + Panel.boardY + 17)
 			y--;
 			
-		g.drawImage(DungeonQuest.loadImage(imgDir), x, y, null);
+		g.drawImage(DungeonQuest.loadImage(imgDir + name + ".png"), x, y, null);
    }
 	
    //--Access--//
@@ -106,10 +106,28 @@ public abstract class Entity{
 	//--Mutate--//
 	
 	//pre:
+	//post: Sets x value to x
+	public void setX(int x){
+		this.x = x;
+	}
+	
+	//pre:
+	//post: Sets y value to y
+	public void setY(int y){
+		this.y = y;
+	}
+	
+	//pre:
 	//post: Sets this.health to health
 	public void setHealth(byte health){
 		this.health = health;
 	}
+	
+   //pre:
+   //post: Changes health value by change
+   public void changeHealth(byte change){
+		health += change;
+   }
 	
 	//pre: 0 <= r < 13, 0 <= c < 9
    //post: Sets Hero position to (r, c), also sets x and y

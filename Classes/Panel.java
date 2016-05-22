@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class Panel extends JPanel{
 	
@@ -18,17 +19,26 @@ public class Panel extends JPanel{
 	
 	public static final byte boardX = 50,					//Used for easier shifting of board position
 							 		 boardY = 70;
-									 
+	
+	//--Combat Stuff--//
+	private ArrayList<Monster> monsters;					//All monsters in dungeon
+	private boolean inCombat;									//Is there combat going on?
+	
+	//--FPS Control Stuff--//								 
 	private final byte MAX_FPS = 30;							//Maximum frame updates per second
-   
+	private long lastUpdate;									//Last time (in milliseconds) paintComponent() executed
+	
    //--Initialize--//
 
 	//ARGS: playerNames is array of names of Heros, one for each person playing
    public Panel(String[] playerNames){
 		grid = new SparseMatrix<Tile>((byte)10, (byte)13);
       bgImg = DungeonQuest.loadImage("Board/Board.png");
+		monsters = new ArrayList<Monster>();
+		inCombat = false;
 		sun = new SunToken();
   		turnInd = 0;
+		lastUpdate = 0;
 		
       //Create heros based on names from menu
       players = new Hero[playerNames.length];
@@ -71,7 +81,9 @@ public class Panel extends JPanel{
    public void paintComponent(Graphics g){
       super.paintComponent(g);
       //------//
-		final long startTime = System.currentTimeMillis();
+		//Wait until enough time has passed since last call
+		while(System.currentTimeMillis() < lastUpdate + 1000.0 / MAX_FPS)//Wait so max frame updates per second is maintained
+				System.out.print("");
 		
 		//Draw background
       g.drawImage(bgImg, 0, 0, 1200, 750, null);
@@ -93,6 +105,10 @@ public class Panel extends JPanel{
       for(Hero h : players)
 			if(h != null)
          	h.draw(g);
+				
+		//Draw all monsters
+		for(Monster m : monsters)
+			m.draw(g);
       
 		//Draw message
 		if(message != null){
@@ -140,6 +156,14 @@ public class Panel extends JPanel{
 				playersDoneGliding = false;
 				break;
 			}
+		}
+		
+		//Draw stuff for combat
+		if(inCombat && playersDoneGliding){
+			//Draw clickable options for Melee, Ranged, and Magic attacks
+			g.drawImage(DungeonQuest.loadImage("Board/MeleeIcon.png"), boardX + 810, boardY, null);
+			g.drawImage(DungeonQuest.loadImage("Board/RangeIcon.png"), boardX + 870, boardY, null);
+			g.drawImage(DungeonQuest.loadImage("Board/MagicIcon.png"), boardX + 930, boardY, null);
 		}
 		
       /*
@@ -208,11 +232,9 @@ public class Panel extends JPanel{
 				}
 			}
 		}
-		
+		lastUpdate = System.currentTimeMillis();//Update time of last update
 		//Check if we need to repaint screen (will stop repainting to save resources)
 		if(message != null || ! playersDoneGliding || ! sun.doneGliding()){
-			while(System.currentTimeMillis() < startTime + 1000.0 / MAX_FPS)//Wait so max frame updates per second is maintained
-				System.out.print("");
 			repaint(0, 0, 1200, 750);
 		}
    }
@@ -254,9 +276,44 @@ public class Panel extends JPanel{
 		for(Hero h : players)
 			if(h != null && ! h.doneGliding())
 				return;
+		
+		//--COMBAT--// 
+		
+		if(inCombat){
+			//Check for click on Melee, Ranged, or Magic attack icons
+			if(y >= boardY && y <= boardY + 50){
+				if(x >= boardX + 810 && x <= boardX + 860){//Click on Melee
+					byte attackValue = players[turnInd].getAttack();
+					monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
+					setMessage("Your Melee attack does " + attackValue + "\ndamage to the monster");
+					
+				}else if(x >= boardX + 870 && x <= boardX + 920){//Click on Ranged
+					byte attackValue = players[turnInd].getAttack();
+					monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
+					setMessage("Your Range attack does " + attackValue + "\ndamage to the monster");
+				
+				}else if(x >= boardX + 930 && x <= boardX + 980){//Click on Magic
+					byte attackValue = players[turnInd].getAttack();
+					monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
+					setMessage("Your Magic attack does " + attackValue + "\ndamage to the monster");
+				}else
+					return;
+				//Check if monster has just been smitted
+				if(monsters.get(monsters.size() - 1).getHealth() <= 0){
+					setMessage("The " + monsters.get(monsters.size() - 1).getName() + " has been smitten");
+					monsters.remove(monsters.size() - 1);
+					players[turnInd].setCombatState(false);
+					inCombat = false;
+				}
+			}
+			return;//Ignore everything else in screen except combat buttons
+		}
+		
+		//--End Combat--//
+		
 		//Figure out which tile is being clicked
-		int cR = (y - boardY) / 60,//Click column (of board)
-			 cC = (x - boardX) / 60;//		  row
+		byte cR = (byte)((y - boardY) / 60),//Click column (of board)
+			  cC = (byte)((x - boardX) / 60);//		  row
 		
 		//Check if tile clicked "contains" Hero whom has the turn
 		if(cR != players[turnInd].getRow() || cC != players[turnInd].getColumn())
@@ -267,11 +324,11 @@ public class Panel extends JPanel{
 			return;
 		
 		//Send tile at location mouse coordinates, RELATIVE TO TILE
-		byte direction = grid.get((byte)cR, (byte)cC).mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
+		byte direction = grid.get(cR, cC).mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
 		
 		//Do stuff based on direction of click (and tile contents)
 		if(direction == 0){			//Center
-			centerAction((byte)cR, (byte)cC);
+			centerAction(cR, cC);
 			
 		}else if(direction == 1){	//North
 			moveHero((byte)1);
@@ -345,18 +402,41 @@ public class Panel extends JPanel{
 			return;
 			
 		else if(side == 'D'){		//If door
-			if(Math.random() < 0.4){//Draw a door card
-				setMessage("The door is shut tight...");
+			//Draw a door card
+			if(Math.random() < 0.4){
+				//Unable to open door
+				if(Math.random() < 0.5){
+					setMessage("The door is shut tight...");
+				}else{
+					setMessage("It will not budge...");
+				}
 				advanceTurn();
 				return;
-			}else{//Player opens the door
-				setMessage("The door creaks open...");
+			}else{
+				//Player opens the door
+				if(Math.random() < 0.5){
+					setMessage("The door creaks open...");
+				}else{
+					setMessage("Creak...");
+				}
 			}
 		}else if(side == 'P'){		//If portcullis
-			if(players[turnInd].getStrength() > (byte)(Math.random() * 8 + 3)){//Test hero's strength
+			//Test hero's strength
+			if(players[turnInd].getStrength() > (byte)(Math.random() * 8)){
+				//Opens portcullis
+				if(Math.random() < 0.5){
+					setMessage("The grate moves upward...");
+				}else{
+					setMessage(players[turnInd].getName() + " lifts the portcullis");
+				}
+			}else{
+				//If unable to move portcullis
+				if(Math.random() < 0.5){
+					setMessage(players[turnInd].getName() + " is unable to lift the\nheavy grate...");
+				}else{
+					setMessage("The portcullis remains shut...");
+				}
 				advanceTurn();
-			}else{//If unable to move portcullis
-				setMessage(players[turnInd].getName() + " is unable to lift the\nheavy grate...");
 				return;
 			}
 		}
@@ -389,6 +469,26 @@ public class Panel extends JPanel{
 			
 			//Finally create actual tile
 			grid.add(new Tile(forceSides), (byte)(cR + moveR), (byte)(cC + moveC));
+			
+			//Add monster (sometimes), also only if going to tile is solid in center
+			if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0] == 'S' && Math.random() < 0.25){
+				byte gen = (byte)(Math.random() * 5);
+				String name;//Name of monster
+				if(gen == 0)
+					name = "Demon";
+				else if(gen == 1)
+					name = "Golem";
+				else if(gen == 2)
+					name = "Skeleton";
+				else if(gen == 3)
+					name = "Sorcerer";
+				else//if(gen == 4)
+					name = "Troll";
+				monsters.add(new Monster(name, (byte)(cR + moveR), (byte)(cC + moveC)));
+				//Tell hero it is in combat
+				players[turnInd].setCombatState(true);
+				inCombat = true;
+			}
 		}
 		
 		//Give next player the turn
@@ -434,9 +534,9 @@ public class Panel extends JPanel{
 				setMessage("Kalladra awakes and burns\n" + players[turnInd].getName() + " with Dragon Breath");
 				players[turnInd].changeHealth((byte)(-100));
 			}
-		}/*else if(cent == 'S'){ 
-		
-		}else if(cent == 'S'){
+		}else if(cent == 'C'){ 						//Cave-in
+			//if(Math.random() * 6 + 1 < 
+		}/*else if(cent == 'S'){
 		
 		}else if(cent == 'S'){
 		
@@ -447,6 +547,23 @@ public class Panel extends JPanel{
 		advanceTurn();
 		//Reflect any graphical changes
 		repaint(0, 0, 1200, 750);
+	}
+	
+	//pre:
+	//post: Returns location in (r, c) form of location of hero in combat
+	private byte[] combatLocation(){
+		byte[] ret = {-1, -1};
+		if(! inCombat)//If there are no combat heros at the moment
+			return ret;
+		//Checking for combat hero location
+		for(Hero h : players){
+			if(h.getCombatState()){//If Hero is in combat
+				ret[0] = h.getRow();
+				ret[1] = h.getColumn();
+				break;
+			}
+		}
+		return ret;
 	}
 	
 	//--Sun Token Class--//

@@ -9,6 +9,7 @@ public class Hero extends Entity{
    //Statistics about a hero (all information taken from rule book)
    
 	private final byte maxLife;				//Max life of Hero. Equivallent to initial life.
+	private boolean inCombat;					//Is Hero currently fighting Monster?
 	private byte treasure;						//Amout of treasure player has
    private byte numSearches;              //Number of consecutive searches this hero has performed
    private final byte strength,           //Hero's might and stamina
@@ -99,12 +100,58 @@ public class Hero extends Entity{
    //--Graphics--//
    
 	//pre: g != null
-	//post: Calls Entity draw method, sending name of this Hero's image
-   public void draw(Graphics g){
-		super.draw("Heros/" + super.getName() + ".png", g);
+	/*
+		post: Aligns (x, y) position with edge of tile if in combat, then
+				draws Hero's image. If not in combat, calls parent draw().
+ 	*/
+	public void draw(Graphics g){
+		if(inCombat){
+			//Glide towards wanted location (edge of tile)
+	   	if(super.getX() < super.getColumn() * 60 + Panel.boardX + 2)
+				super.setX(super.getX() + 1);
+				
+			else if(super.getX() > super.getColumn() * 60 + Panel.boardX + 42)
+				super.setX(super.getX() - 1);
+				
+	   	else if(super.getY() < super.getRow() * 60 + Panel.boardY - 17)
+				super.setY(super.getY() + 1);
+				
+			else if(super.getY() > super.getRow() * 60 + Panel.boardY + 27)
+				super.setY(super.getY() - 1);
+				
+			g.drawImage(DungeonQuest.loadImage("Heros/" + super.getName() + ".png"), super.getX(), super.getY(), null);
+			
+		}else//If not in combat
+			super.draw("Heros/", g);
    }
-   
+	
    //--Access--//
+	
+	//pre:
+	//post:
+	public boolean doneGliding(){
+		if(inCombat){
+			if(super.getX() == super.getColumn() * 60 + Panel.boardX + 2 || 
+				super.getX() == super.getColumn() * 60 + Panel.boardX + 42 ||
+				super.getY() == super.getRow() * 60 + Panel.boardY - 17 ||
+				super.getY() == super.getRow() * 60 + Panel.boardY + 27)
+				return true;
+		}else
+			return super.doneGliding();
+		return false;
+	}
+	
+	//pre:
+	//post: Returns true if in combat, false otherwise
+	public boolean getCombatState(){
+		return inCombat;
+	}
+	
+	//pre:
+	//post: Returns value of a random attack on monster
+	public byte getAttack(){
+		return (byte)(Math.random() * strength);
+	}
 	
 	//pre:
 	//post: Returns treasure which hero has accquired
@@ -159,6 +206,12 @@ public class Hero extends Entity{
 	
    //--Mutate--//
    
+	//pre:
+	//post: Sets inCombat to combatState
+	public void setCombatState(boolean combatState){
+		inCombat = combatState;
+	}
+	
    //pre:
    //post: Increases numSearches by one
    public void searched(){
@@ -174,8 +227,8 @@ public class Hero extends Entity{
    //pre:
    //post: Changes health value by change
    public void changeHealth(byte change){
-      super.setHealth((byte)(super.getHealth() + change));
-      if(super.getHealth() > maxLife)
+      super.changeHealth(change);
+      if(super.getHealth() > maxLife)//Make sure any healing does not exceed original life value
          super.setHealth(maxLife);
    }
    

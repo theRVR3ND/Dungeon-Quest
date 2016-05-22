@@ -14,10 +14,14 @@ public class Monster extends Entity{
 		super(name, (byte)(Math.random() * 10), (byte)(Math.random() * 13));
 	}
 	
+	public Monster(String name, byte r, byte c){
+		super(name, r, c);
+	}
+	
 	//--Graphics--//
 	
 	public void draw(Graphics g){
-		super.draw("Monsters/" + super.getName() + ".png", g);
+		super.draw("Monsters/", g);
 	}
 	
 	//--Access--//
@@ -31,14 +35,13 @@ public class Monster extends Entity{
 			}
 			return 'C';
 		}else{//if(type == 2)	Player attempts to flee
-			if(Math.random() < 0.8){
+			if(Math.random() < 0.2){
 				return 'E';//Let player escape
 			}else{
-				super.setHealth((byte)(Math.random() * 6 + 5));//Combat
+				super.setHealth((byte)(Math.random() * 6 + 6));//Combat
 				return 'C';
 			}
 		}
-		return 'C';
 	}
 	
 	//pre:
@@ -48,4 +51,43 @@ public class Monster extends Entity{
 	}
 	
 	//--Mutate--//
+	
+	//pre: playerAction = 1 (Range attack), 2 (Melee attack), or 3 (Magic attack)
+	//post: Returns damage dealt to Hero
+	public byte fight(byte playerAction){
+		/*
+		final byte action = (byte)(Math.random() * 3 + 1);//Monster's action (one of 3 attacks)
+		if(playerAction == 1){							//Hero melee attack
+			if(action == 1){									//Monster melee attack
+				super.changeHealth((byte)(-2));
+				return (byte)2;
+				
+			}else if(action == 2){							//Monster range attack
+				super.changeHealth((byte)());
+				return (byte);
+			}
+			
+		}else if(playerAction == 2){					//Hero range attack
+			if(action == 1){									//Monster melee attack
+				super.changeHealth((byte)());
+				return (byte);
+				
+			}else if(action == 2){							//Monster range attack
+				super.changeHealth((byte)());
+				return (byte);
+			}
+			
+		}else if(playerAction == 3){					//Hero magic attack
+			if(action == 1){									//Monster melee attack
+				super.changeHealth((byte)());
+				return (byte);
+				
+			}else if(action == 2){							//Monster range attack
+				super.changeHealth((byte)());
+				return (byte);
+			}
+		}
+		*/
+		return 0;
+	}
 }

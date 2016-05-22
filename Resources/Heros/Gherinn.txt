@@ -1,8 +1,8 @@
-1
-2
-2
-2
-2
-Poop
-Gherinn
+13
+3
+4
+4
+9
+Brother Gherinn
+SpecialAbility
 Mucho Flavor

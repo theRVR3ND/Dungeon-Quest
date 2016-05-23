@@ -53,7 +53,7 @@ public abstract class Entity{
 			x++;
 		else if(x > c * 60 + Panel.boardX + 22)
 			x--;
-   	else if(y < r * 60 + Panel.boardY + 17)
+   	if(y < r * 60 + Panel.boardY + 17)
 			y++;
 		else if(y > r * 60 + Panel.boardY + 17)
 			y--;

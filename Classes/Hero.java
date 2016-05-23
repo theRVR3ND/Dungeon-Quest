@@ -9,7 +9,7 @@ public class Hero extends Entity{
    //Statistics about a hero (all information taken from rule book)
    
 	private final byte maxLife;				//Max life of Hero. Equivallent to initial life.
-	private boolean inCombat;					//Is Hero currently fighting Monster?
+	private boolean alignEdge;					//Should Hero graphically not move to center of tile?
 	private byte treasure;						//Amout of treasure player has
    private byte numSearches;              //Number of consecutive searches this hero has performed
    private final byte strength,           //Hero's might and stamina
@@ -105,7 +105,7 @@ public class Hero extends Entity{
 				draws Hero's image. If not in combat, calls parent draw().
  	*/
 	public void draw(Graphics g){
-		if(inCombat){
+		if(alignEdge){
 			//Glide towards wanted location (edge of tile)
 	   	if(super.getX() < super.getColumn() * 60 + Panel.boardX + 2)
 				super.setX(super.getX() + 1);
@@ -116,12 +116,12 @@ public class Hero extends Entity{
 	   	else if(super.getY() < super.getRow() * 60 + Panel.boardY - 17)
 				super.setY(super.getY() + 1);
 				
-			else if(super.getY() > super.getRow() * 60 + Panel.boardY + 27)
+			else if(super.getY() > super.getRow() * 60 + Panel.boardY + 47)
 				super.setY(super.getY() - 1);
 				
 			g.drawImage(DungeonQuest.loadImage("Heros/" + super.getName() + ".png"), super.getX(), super.getY(), null);
 			
-		}else//If not in combat
+		}else//If not in combat, do normal movement
 			super.draw("Heros/", g);
    }
 	
@@ -130,11 +130,11 @@ public class Hero extends Entity{
 	//pre:
 	//post:
 	public boolean doneGliding(){
-		if(inCombat){
+		if(alignEdge){
 			if(super.getX() == super.getColumn() * 60 + Panel.boardX + 2 || 
 				super.getX() == super.getColumn() * 60 + Panel.boardX + 42 ||
 				super.getY() == super.getRow() * 60 + Panel.boardY - 17 ||
-				super.getY() == super.getRow() * 60 + Panel.boardY + 27)
+				super.getY() == super.getRow() * 60 + Panel.boardY + 47)
 				return true;
 		}else
 			return super.doneGliding();
@@ -142,9 +142,9 @@ public class Hero extends Entity{
 	}
 	
 	//pre:
-	//post: Returns true if in combat, false otherwise
-	public boolean getCombatState(){
-		return inCombat;
+	//post: Returns true if moving only to edge of tile, false otherwise
+	public boolean getEdgeAlign(){
+		return alignEdge;
 	}
 	
 	//pre:
@@ -207,9 +207,9 @@ public class Hero extends Entity{
    //--Mutate--//
    
 	//pre:
-	//post: Sets inCombat to combatState
-	public void setCombatState(boolean combatState){
-		inCombat = combatState;
+	//post: Sets alignEdge to edgeAlign
+	public void setEdgeAlign(boolean edgeAlign){
+		alignEdge = edgeAlign;
 	}
 	
    //pre:

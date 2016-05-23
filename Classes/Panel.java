@@ -302,7 +302,7 @@ public class Panel extends JPanel{
 				if(monsters.get(monsters.size() - 1).getHealth() <= 0){
 					setMessage("The " + monsters.get(monsters.size() - 1).getName() + " has been smitten");
 					monsters.remove(monsters.size() - 1);
-					players[turnInd].setCombatState(false);
+					players[turnInd].setEdgeAlign(false);
 					inCombat = false;
 				}
 			}
@@ -397,6 +397,14 @@ public class Panel extends JPanel{
 			cC + moveC < 0 || cC + moveC >= 13)
 			return;
 		
+		//If Hero is currently at an obstacle tile (hole, cave-in, etc.), check for retreat or try to cross
+		final char cent = grid.get(cR, cC).getSide((byte)0);
+		if(cent == 'H'){//Hole
+		
+		}else if(cent == 'C'){//Cave-in
+			
+		}
+		
 		//Check if current tile has an opening at moving direction, or perform needed action to move
 		if(side == 'W')				//If wall
 			return;
@@ -486,9 +494,13 @@ public class Panel extends JPanel{
 					name = "Troll";
 				monsters.add(new Monster(name, (byte)(cR + moveR), (byte)(cC + moveC)));
 				//Tell hero it is in combat
-				players[turnInd].setCombatState(true);
+				players[turnInd].setEdgeAlign(true);
 				inCombat = true;
 			}
+			
+			//Cave-in
+			if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0] == 'C')
+				players[turnInd].setEdgeAlign(true);
 		}
 		
 		//Give next player the turn
@@ -534,8 +546,6 @@ public class Panel extends JPanel{
 				setMessage("Kalladra awakes and burns\n" + players[turnInd].getName() + " with Dragon Breath");
 				players[turnInd].changeHealth((byte)(-100));
 			}
-		}else if(cent == 'C'){ 						//Cave-in
-			//if(Math.random() * 6 + 1 < 
 		}/*else if(cent == 'S'){
 		
 		}else if(cent == 'S'){
@@ -547,23 +557,6 @@ public class Panel extends JPanel{
 		advanceTurn();
 		//Reflect any graphical changes
 		repaint(0, 0, 1200, 750);
-	}
-	
-	//pre:
-	//post: Returns location in (r, c) form of location of hero in combat
-	private byte[] combatLocation(){
-		byte[] ret = {-1, -1};
-		if(! inCombat)//If there are no combat heros at the moment
-			return ret;
-		//Checking for combat hero location
-		for(Hero h : players){
-			if(h.getCombatState()){//If Hero is in combat
-				ret[0] = h.getRow();
-				ret[1] = h.getColumn();
-				break;
-			}
-		}
-		return ret;
 	}
 	
 	//--Sun Token Class--//

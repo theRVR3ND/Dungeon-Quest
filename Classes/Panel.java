@@ -277,48 +277,134 @@ public class Panel extends JPanel{
 			if(h != null && ! h.doneGliding())
 				return;
 		
-		//--COMBAT--// 
-		
-		if(inCombat){
-			//Check for click on Melee, Ranged, or Magic attack icons
-			if(y >= boardY && y <= boardY + 50){
-				if(x >= boardX + 810 && x <= boardX + 860){//Click on Melee
-					byte attackValue = players[turnInd].getAttack();
-					monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
-					setMessage("Your Melee attack does " + attackValue + "\ndamage to the monster");
-					
-				}else if(x >= boardX + 870 && x <= boardX + 920){//Click on Ranged
-					byte attackValue = players[turnInd].getAttack();
-					monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
-					setMessage("Your Range attack does " + attackValue + "\ndamage to the monster");
-				
-				}else if(x >= boardX + 930 && x <= boardX + 980){//Click on Magic
-					byte attackValue = players[turnInd].getAttack();
-					monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
-					setMessage("Your Magic attack does " + attackValue + "\ndamage to the monster");
-				}else
-					return;
-				//Check if monster has just been smitted
-				if(monsters.get(monsters.size() - 1).getHealth() <= 0){
-					setMessage("The " + monsters.get(monsters.size() - 1).getName() + " has been smitten");
-					monsters.remove(monsters.size() - 1);
-					players[turnInd].setEdgeAlign(false);
-					inCombat = false;
-				}
-			}
-			return;//Ignore everything else in screen except combat buttons
-		}
-		
-		//--End Combat--//
-		
 		//Figure out which tile is being clicked
 		byte cR = (byte)((y - boardY) / 60),//Click column (of board)
 			  cC = (byte)((x - boardX) / 60);//		  row
+			  
+		//Combat for obstacle stuff
+		if(players[turnInd].getEdgeAlign()){
+			//Check for click on adjacent tiles for escaping monster or obstacle
+			final byte dir;//Direction of tile clicked relative to Hero
+			if(cR < players[turnInd].getRow() && cC == players[turnInd].getColumn())			//Click above
+				dir = 1;
+			else if(cC > players[turnInd].getColumn() && cR == players[turnInd].getRow())		//Click to the right
+				dir = 2;
+			else if(cR > players[turnInd].getRow() && cC == players[turnInd].getColumn())		//Click below
+				dir = 3;
+			else if(cC < players[turnInd].getColumn() && cR == players[turnInd].getRow())		//Click to the left
+				dir = 4;
+			else
+				dir = 0;
+			//Figure out side of tile Hero is aligned with
+			final byte heroDir;
+			if(players[turnInd].getY() == players[turnInd].getRow() * 60 + boardY - 17)			//Aligned top
+				heroDir = 1;
+			else if(players[turnInd].getX() == players[turnInd].getColumn() * 60 + boardX + 42)	//Aligned left
+				heroDir = 2;
+			else if(players[turnInd].getY() == players[turnInd].getRow() * 60 + boardY + 47)		//Aligned bottom
+				heroDir = 3;
+			else if(players[turnInd].getX() == players[turnInd].getColumn() * 60 + boardX + 2)	//Aligned left
+				heroDir = 4;
+			else
+				heroDir = -1;
+			//--COMBAT--//
+			if(inCombat){
+				//Check for click on Melee, Ranged, or Magic attack icons
+				if(x >= boardX + 810 && x <= boardX + 980 && y >= boardY && y <= boardY + 50){
+					if(x <= boardX + 860){//Click on Melee
+						byte attackValue = players[turnInd].getAttack();
+						monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
+						setMessage("Your Melee attack does " + attackValue + "\ndamage to the monster");
+						
+					}else if(x <= boardX + 920){//Click on Ranged
+						byte attackValue = players[turnInd].getAttack();
+						monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
+						setMessage("Your Range attack does " + attackValue + "\ndamage to the monster");
+						
+					}else if(x <= boardX + 980){//Click on Magic
+						byte attackValue = players[turnInd].getAttack();
+						monsters.get(monsters.size() - 1).changeHealth((byte)(-attackValue));
+						setMessage("Your Magic attack does " + attackValue + "\ndamage to the monster");
+						
+					}
+					//Check if monster has just been smitted
+					if(monsters.get(monsters.size() - 1).getHealth() <= 0){
+						setMessage("The " + monsters.get(monsters.size() - 1).getName() + " has been smitten");
+						monsters.remove(monsters.size() - 1);
+						players[turnInd].setEdgeAlign(false);
+						inCombat = false;
+					}
+				}else{
+					//Check if player tried to escape monster
+					if(dir == heroDir){
+						//Try to escape monster
+						if(false){//If unable to escape
+						
+						}else{//If able to escape
+							players[turnInd].setEdgeAlign(false);
+							//Move hero without advancing turn
+							if(dir == 1){
+								players[turnInd].move((byte)-1, (byte)0);
+								
+							}else if(dir == 2){
+								players[turnInd].move((byte)0, (byte)0);
+								
+							}else if(dir == 3){
+								players[turnInd].move((byte)0, (byte)0);
+								
+							}else if(dir == 4){
+								players[turnInd].move((byte)0, (byte)0);
+							}
+							return;
+						}
+					}
+				}
+				return;//Ignore everything else in screen except combat buttons
+			}
+			//--End Combat--//
+			
+			//--Obstacle--//
+				//If player is currently at a hole or cave-in tile
+			final char tileSide = grid.get(players[turnInd].getRow(), players[turnInd].getColumn()).getSide((byte)0);
+			if(tileSide == 'H' || tileSide == 'C' || tileSide == 'I'){
+					//Compare click direction and hero direction
+					if(dir == heroDir){//Player chooses to back away from obstacle
+						//Do nothing
+					}else{//Player chooses to try and cross obstacle
+						if(tileSide == 'C'){//If crossing cave-in
+							if(Math.random() < 0.5){
+								setMessage("You trip, fall and die...");
+								players[turnInd].changeHealth((byte)(-100));
+							}else{
+								setMessage("You survive");
+							}
+						}else if(tileSide == 'H'){//Leaping over hole
+							if(Math.random() < 0.5){
+								setMessage("You trip, fall and die...");
+								players[turnInd].changeHealth((byte)(-100));
+							}else{
+								setMessage("You survive");
+							}
+						}else{//Inky hole stuff
+							if(Math.random() < 0.5){
+								setMessage("You trip, fall and die...");
+								players[turnInd].changeHealth((byte)(-100));
+							}else{
+								setMessage("You survive");
+							}
+						}
+					}
+					players[turnInd].setEdgeAlign(false);
+					moveHero(dir);
+					return;
+			}
+		}
+		//--End Obstacle Stuff--//
 		
 		//Check if tile clicked "contains" Hero whom has the turn
 		if(cR != players[turnInd].getRow() || cC != players[turnInd].getColumn())
 			return;
-			
+		
 		//Check if any tile is there
 		if(grid.get((byte)cR, (byte)cC) == null)
 			return;
@@ -396,14 +482,6 @@ public class Panel extends JPanel{
 		if(cR + moveR < 0 || cR + moveR >= 10 ||
 			cC + moveC < 0 || cC + moveC >= 13)
 			return;
-		
-		//If Hero is currently at an obstacle tile (hole, cave-in, etc.), check for retreat or try to cross
-		final char cent = grid.get(cR, cC).getSide((byte)0);
-		if(cent == 'H'){//Hole
-		
-		}else if(cent == 'C'){//Cave-in
-			
-		}
 		
 		//Check if current tile has an opening at moving direction, or perform needed action to move
 		if(side == 'W')				//If wall
@@ -498,8 +576,9 @@ public class Panel extends JPanel{
 				inCombat = true;
 			}
 			
-			//Cave-in
-			if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0] == 'C')
+			//Cave-in or other obstacle
+			final char tileSide = grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0];
+			if(tileSide == 'C' || tileSide == 'H' || tileSide == 'I')
 				players[turnInd].setEdgeAlign(true);
 		}
 		

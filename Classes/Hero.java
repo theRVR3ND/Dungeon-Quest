@@ -113,7 +113,7 @@ public class Hero extends Entity{
 			else if(super.getX() > super.getColumn() * 60 + Panel.boardX + 42)
 				super.setX(super.getX() - 1);
 				
-	   	else if(super.getY() < super.getRow() * 60 + Panel.boardY - 17)
+	   	if(super.getY() < super.getRow() * 60 + Panel.boardY - 17)
 				super.setY(super.getY() + 1);
 				
 			else if(super.getY() > super.getRow() * 60 + Panel.boardY + 47)

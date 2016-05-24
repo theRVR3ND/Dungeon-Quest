@@ -284,15 +284,9 @@ public class Panel extends JPanel{
 		//Combat for obstacle stuff
 		if(players[turnInd].getEdgeAlign()){
 			//Check for click on adjacent tiles for escaping monster or obstacle
-			final byte dir;//Direction of tile clicked relative to Hero
-			if(cR < players[turnInd].getRow() && cC == players[turnInd].getColumn())			//Click above
-				dir = 1;
-			else if(cC > players[turnInd].getColumn() && cR == players[turnInd].getRow())		//Click to the right
-				dir = 2;
-			else if(cR > players[turnInd].getRow() && cC == players[turnInd].getColumn())		//Click below
-				dir = 3;
-			else if(cC < players[turnInd].getColumn() && cR == players[turnInd].getRow())		//Click to the left
-				dir = 4;
+			final byte dir;//Direction of movement desired by Hero
+			if(cR >= 0 && cC >= 0 && cR < 10 && cC < 13)
+				dir = grid.get(cR, cC).mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
 			else
 				dir = 0;
 			//Figure out side of tile Hero is aligned with
@@ -341,65 +335,53 @@ public class Panel extends JPanel{
 						if(false){//If unable to escape
 						
 						}else{//If able to escape
+							inCombat = false;
 							players[turnInd].setEdgeAlign(false);
-							//Move hero without advancing turn
-							if(dir == 1){
-								players[turnInd].move((byte)-1, (byte)0);
-								
-							}else if(dir == 2){
-								players[turnInd].move((byte)0, (byte)0);
-								
-							}else if(dir == 3){
-								players[turnInd].move((byte)0, (byte)0);
-								
-							}else if(dir == 4){
-								players[turnInd].move((byte)0, (byte)0);
-							}
-							return;
+							reverseTurn();
+							moveHero(dir);
 						}
 					}
 				}
-				return;//Ignore everything else in screen except combat buttons
+				return;
 			}
 			//--End Combat--//
 			
 			//--Obstacle--//
 				//If player is currently at a hole or cave-in tile
 			final char tileSide = grid.get(players[turnInd].getRow(), players[turnInd].getColumn()).getSide((byte)0);
-			if(tileSide == 'H' || tileSide == 'C' || tileSide == 'I'){
-					//Compare click direction and hero direction
-					if(dir == heroDir){//Player chooses to back away from obstacle
-						//Do nothing
-					}else{//Player chooses to try and cross obstacle
-						if(tileSide == 'C'){//If crossing cave-in
-							if(Math.random() < 0.5){
-								setMessage("You trip, fall and die...");
-								players[turnInd].changeHealth((byte)(-100));
-							}else{
-								setMessage("You survive");
-							}
-						}else if(tileSide == 'H'){//Leaping over hole
-							if(Math.random() < 0.5){
-								setMessage("You trip, fall and die...");
-								players[turnInd].changeHealth((byte)(-100));
-							}else{
-								setMessage("You survive");
-							}
-						}else{//Inky hole stuff
-							if(Math.random() < 0.5){
-								setMessage("You trip, fall and die...");
-								players[turnInd].changeHealth((byte)(-100));
-							}else{
-								setMessage("You survive");
-							}
-						}
+			//Compare click direction and hero direction
+			if(dir == heroDir){//Player chooses to back away from obstacle
+				//DO NOTHING
+			}else{//Player chooses to try and cross obstacle
+				if(tileSide == 'C'){//If crossing cave-in
+					if(Math.random() < 0){
+						setMessage("You trip, fall and die...");
+						players[turnInd].changeHealth((byte)(-100));
+					}else{
+						setMessage("You survive");
 					}
-					players[turnInd].setEdgeAlign(false);
-					moveHero(dir);
-					return;
+				}else if(tileSide == 'H'){//Leaping over hole
+					if(Math.random() < 0){
+						setMessage("You trip, fall and die...");
+						players[turnInd].changeHealth((byte)(-100));
+					}else{
+						setMessage("You survive");
+					}
+				}else{//Inky hole stuff
+					if(Math.random() < 0){
+						setMessage("You trip, fall and die...");
+						players[turnInd].changeHealth((byte)(-100));
+					}else{
+						setMessage("You survive");
+					}
+				}
 			}
+			//--End Obstacle Stuff--//
+			players[turnInd].setEdgeAlign(false);
+			reverseTurn();
+			moveHero(dir);
+			return;
 		}
-		//--End Obstacle Stuff--//
 		
 		//Check if tile clicked "contains" Hero whom has the turn
 		if(cR != players[turnInd].getRow() || cC != players[turnInd].getColumn())
@@ -413,20 +395,10 @@ public class Panel extends JPanel{
 		byte direction = grid.get(cR, cC).mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
 		
 		//Do stuff based on direction of click (and tile contents)
-		if(direction == 0){			//Center
+		if(direction == 0){			//Center action
 			centerAction(cR, cC);
-			
-		}else if(direction == 1){	//North
-			moveHero((byte)1);
-			
-		}else if(direction == 2){	//East
-			moveHero((byte)2);
-			
-		}else if(direction == 3){	//South
-			moveHero((byte)3);
-			
-		}else if(direction == 4){	//West
-			moveHero((byte)4);
+		}else{							//Side movement
+			moveHero(direction);
 		}
 	}
    
@@ -442,6 +414,18 @@ public class Panel extends JPanel{
 				turnInd = 0;
 				sun.advance();
 			}
+			if(players[turnInd] != null)
+				break;
+		}
+	}
+	
+	//pre:
+	//post: Reduces turnInd until a non-null index of players is reached
+	private void reverseTurn(){
+		for(byte i = 0; i < players.length; i++){
+			turnInd--;
+			if(turnInd == -1)
+				turnInd = (byte)(players.length - 1);
 			if(players[turnInd] != null)
 				break;
 		}
@@ -528,10 +512,10 @@ public class Panel extends JPanel{
 		}
 		
 		/* MOVE MUST BE VALID AT THIS POINT */
-		
+	
 		//Tell turn hero to move
 		players[turnInd].move(moveR, moveC);
-		
+			
 		//Create tile at new location, if not previously there
 		if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)) == null){
 			char[] forceSides = new char[5];//Sides to force. Blank spots will be filled randomly as usual.
@@ -540,6 +524,20 @@ public class Panel extends JPanel{
 			if(forceOpen >= 5)
 				forceOpen = (byte)(forceOpen % 4);
 			forceSides[forceOpen] = 'O';
+			/*
+				Make sure there is no center obstacle if Hero has just moved from obstacle tile
+				(Hella graphical jankiness otherwise)
+			*/
+			if(grid.get(cR, cC).getSides()[0] == 'H' ||
+				grid.get(cR, cC).getSides()[0] == 'C' ||
+				grid.get(cR, cC).getSides()[0] == 'I'){
+				if(Math.random() < 0.3)
+					forceSides[0] = 'S';
+				else if(Math.random() < 0.3)
+					forceSides[0] = 'T';
+				else
+					forceSides[0] = 'R';
+			}
 			//Force walls on all edges of board
 			if(cC + moveC == 0)			//If on left edge
 				forceSides[4] = 'W';
@@ -556,32 +554,34 @@ public class Panel extends JPanel{
 			//Finally create actual tile
 			grid.add(new Tile(forceSides), (byte)(cR + moveR), (byte)(cC + moveC));
 			
-			//Add monster (sometimes), also only if going to tile is solid in center
-			if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0] == 'S' && Math.random() < 0.25){
-				byte gen = (byte)(Math.random() * 5);
-				String name;//Name of monster
-				if(gen == 0)
-					name = "Demon";
-				else if(gen == 1)
-					name = "Golem";
-				else if(gen == 2)
-					name = "Skeleton";
-				else if(gen == 3)
-					name = "Sorcerer";
-				else//if(gen == 4)
-					name = "Troll";
-				monsters.add(new Monster(name, (byte)(cR + moveR), (byte)(cC + moveC)));
-				//Tell hero it is in combat
-				players[turnInd].setEdgeAlign(true);
-				inCombat = true;
-			}
-			
+			final char tileSide = grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0];//Center contents
+			/*
+				Add monster (sometimes), also only if going to tile is solid in center, moreover, if Hero was NOT just
+				in a obstacle or monster situation
+			*/
+			if(tileSide == 'S'){
+				if(Math.random() < 0.25 && ! players[turnInd].getEdgeAlign()){
+					byte gen = (byte)(Math.random() * 5);
+					String name;//Name of monster
+					if(gen == 0)
+						name = "Demon";
+					else if(gen == 1)
+						name = "Golem";
+					else if(gen == 2)
+						name = "Skeleton";
+					else if(gen == 3)
+						name = "Sorcerer";
+					else//if(gen == 4)
+						name = "Troll";
+					monsters.add(new Monster(name, (byte)(cR + moveR), (byte)(cC + moveC)));
+					//Tell hero it is in combat
+					players[turnInd].setEdgeAlign(true);
+					inCombat = true;
+				}
 			//Cave-in or other obstacle
-			final char tileSide = grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0];
-			if(tileSide == 'C' || tileSide == 'H' || tileSide == 'I')
-				players[turnInd].setEdgeAlign(true);
+			}else if(tileSide == 'C' || tileSide == 'H' || tileSide == 'I')
+				players[turnInd].setEdgeAlign(true);//Wait on edge of tile (not in obstacle)
 		}
-		
 		//Give next player the turn
 		advanceTurn();
 		//Reflect any graphical changes

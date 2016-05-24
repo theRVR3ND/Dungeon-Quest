@@ -285,10 +285,10 @@ public class Panel extends JPanel{
 		if(players[turnInd].getEdgeAlign()){
 			//Check for click on adjacent tiles for escaping monster or obstacle
 			final byte dir;//Direction of movement desired by Hero
-			if(cR >= 0 && cC >= 0 && cR < 10 && cC < 13)
+			if(cR == players[turnInd].getRow() || cC == players[turnInd].getColumn())
 				dir = grid.get(cR, cC).mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
 			else
-				dir = 0;
+				return;
 			//Figure out side of tile Hero is aligned with
 			final byte heroDir;
 			if(players[turnInd].getY() == players[turnInd].getRow() * 60 + boardY - 17)			//Aligned top
@@ -376,11 +376,11 @@ public class Panel extends JPanel{
 					}
 				}
 			}
-			//--End Obstacle Stuff--//
 			players[turnInd].setEdgeAlign(false);
 			reverseTurn();
 			moveHero(dir);
 			return;
+			//--End Obstacle Stuff--//
 		}
 		
 		//Check if tile clicked "contains" Hero whom has the turn
@@ -556,8 +556,11 @@ public class Panel extends JPanel{
 			
 			final char tileSide = grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0];//Center contents
 			/*
-				Add monster (sometimes), also only if going to tile is solid in center, moreover, if Hero was NOT just
-				in a obstacle or monster situation
+				Add monster if:
+					- Random probability
+					- Monster is not already at position
+					- If going to tile is solid in center
+					- If Hero was NOT just in a obstacle or monster situation
 			*/
 			if(tileSide == 'S'){
 				if(Math.random() < 0.25 && ! players[turnInd].getEdgeAlign()){
@@ -578,9 +581,13 @@ public class Panel extends JPanel{
 					players[turnInd].setEdgeAlign(true);
 					inCombat = true;
 				}
-			//Cave-in or other obstacle
-			}else if(tileSide == 'C' || tileSide == 'H' || tileSide == 'I')
-				players[turnInd].setEdgeAlign(true);//Wait on edge of tile (not in obstacle)
+			}
+		}
+		//Cave-in or other obstacle
+		switch(grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0]){
+			case('C'): ;
+			case('H'): ;
+			case('I'): players[turnInd].setEdgeAlign(true);//Wait on edge of tile (not in obstacle)
 		}
 		//Give next player the turn
 		advanceTurn();

@@ -12,10 +12,12 @@ public class Monster extends Entity{
 	*/
 	public Monster(String name){
 		super(name, (byte)(Math.random() * 10), (byte)(Math.random() * 13));
+		super.setHealth((byte)100);
 	}
 	
 	public Monster(String name, byte r, byte c){
 		super(name, r, c);
+		super.setHealth((byte)100);
 	}
 	
 	//--Graphics--//

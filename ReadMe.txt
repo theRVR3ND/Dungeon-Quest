@@ -26,7 +26,7 @@ Made with references to stackoverflow.com and the Dungeon Quest rule book from
 fantasyflightgames.com.
 
 This project was made possible with the essential help and guidance from Reverend Oberle
-and Rhys Oberle.
+and Rhys Miller.
 
 
 

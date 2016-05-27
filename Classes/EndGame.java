@@ -8,7 +8,7 @@ public class EndGame extends JPanel{
 	//--Initialize--//
 	
 	public EndGame(){
-		names = new TextBox[Panel.numPlayers];
+		names = new TextBox[0];
 		for(byte i = 0; i < names.length; i++)
 			names[i] = new TextBox((byte)10);//Allow for max. 10-length names
 	}
@@ -18,6 +18,7 @@ public class EndGame extends JPanel{
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
 		//------//
+		System.out.println("F");
 		//Draw background
 		g.drawImage(DungeonQuest.loadImage("Menu/MenuScreen.png"), 0, 0, 1200, 750, null);
 		//Draw names

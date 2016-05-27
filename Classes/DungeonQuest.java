@@ -62,13 +62,14 @@ public class DungeonQuest{
 		//--End Game--//
 		
 		e = new EndGame();
-		p = null;
 		
 		f.setTitle("Dungeon Quest || The End");
       f.remove(f.getContentPane());
       f.setContentPane(e);
       f.validate();
       f.repaint();
+		
+		p = null;
 		
 		while(e.stillWaiting()){}
 		

@@ -107,18 +107,18 @@ public class Hero extends Entity{
 	public void draw(Graphics g){
 		if(alignEdge){
 			//Glide towards wanted location (edge of tile)
-	   	if(super.getX() < super.getColumn() * 60 + Panel.boardX + 2)
+	   	if(super.getX() < super.getColumn() * 60 + Panel.boardX + 2)			//Glide to left edge
 				super.setX(super.getX() + 1);
 				
-			else if(super.getX() > super.getColumn() * 60 + Panel.boardX + 42)
+			else if(super.getX() > super.getColumn() * 60 + Panel.boardX + 42)	//Glide to right edge
 				super.setX(super.getX() - 1);
-				
-	   	if(super.getY() < super.getRow() * 60 + Panel.boardY - 17)
+			
+	   	if(super.getY() < super.getRow() * 60 + Panel.boardY - 17)				//Glide to top edge
 				super.setY(super.getY() + 1);
 				
-			else if(super.getY() > super.getRow() * 60 + Panel.boardY + 47)
+			else if(super.getY() > super.getRow() * 60 + Panel.boardY + 47)		//Glide to bottom edge
 				super.setY(super.getY() - 1);
-				
+			
 			g.drawImage(DungeonQuest.loadImage("Heros/" + super.getName() + ".png"), super.getX(), super.getY(), null);
 			
 		}else//If not in combat, do normal movement
@@ -222,6 +222,8 @@ public class Hero extends Entity{
 	//post:
 	public void addTreasure(byte i){
 		treasure += i;
+		if(treasure < 0)
+			treasure = 0;
 	}
 	
    //pre:

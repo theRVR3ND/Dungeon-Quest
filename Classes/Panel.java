@@ -17,6 +17,7 @@ public class Panel extends JPanel{
 	private byte messageUpdates;								//Number of screen updates message should be displayed for
 	private SunToken sun;										//Token to keep track of day
 	
+	public static byte numPlayers;							//Number of players (at start of game)
 	public static final byte boardX = 50,					//Used for easier shifting of board position
 							 		 boardY = 70;
 	
@@ -39,6 +40,7 @@ public class Panel extends JPanel{
 		sun = new SunToken();
   		turnInd = 0;
 		lastUpdate = 0;
+		numPlayers = (byte)playerNames.length;
 		
       //Create heros based on names from menu
       players = new Hero[playerNames.length];
@@ -82,8 +84,7 @@ public class Panel extends JPanel{
       super.paintComponent(g);
       //------//
 		//Wait until enough time has passed since last call
-		while(System.currentTimeMillis() < lastUpdate + 1000.0 / MAX_FPS)//Wait so max frame updates per second is maintained
-				System.out.print("");
+		while(System.currentTimeMillis() < lastUpdate + 1000.0 / MAX_FPS){}
 		
 		//Draw background
       g.drawImage(bgImg, 0, 0, 1200, 750, null);
@@ -182,7 +183,8 @@ public class Panel extends JPanel{
 				//If out of dungeon
 	      if(players[i].getX() < boardX - 10 || players[i].getX() > boardX + 775 || 
 	         players[i].getY() < boardY - 10 || players[i].getY() > boardY + 590){
-				setMessage(players[i].getName() + " leaves the Dungeon...");
+				setMessage(players[i].getName() + " leaves the Dungeon\nwith " + 
+							  players[i].getTreasure() + " gold...");
 				//If Hero is killed
 			}else if(players[i].getHealth() <= 0){
 				setMessage(players[i].getName() + " has been smitten...");
@@ -590,7 +592,7 @@ public class Panel extends JPanel{
 			//Finally create actual tile
 			grid.add(new Tile(forceSides), (byte)(cR + moveR), (byte)(cC + moveC));
 			
-			//--Monster Stuff--//
+			//--Monster Creation Stuff--//
 			/*
 				Add monster if:
 					- Random probability
@@ -613,7 +615,7 @@ public class Panel extends JPanel{
 					}
 				}
 				//Create monster
-				if(createMonster && Math.random() < 1){
+				if(createMonster && Math.random() < 0.25){
 					byte gen = (byte)(Math.random() * 5);
 					String name;//Name of monster
 					if(gen == 0)
@@ -632,7 +634,7 @@ public class Panel extends JPanel{
 					inCombat = true;
 				}
 			}
-			//--End Monster Stuff--//
+			//--End Monster Creation Stuff--//
 		}else{//If entering preexisting tile
 			//Check if entering grid spot with a monster in it
 			for(Monster m : monsters)
@@ -744,6 +746,19 @@ public class Panel extends JPanel{
 						//Make sure tile already exists at wanted position
 						if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)) == null)
 							continue eachMonster;
+						//Do not move to position of hero
+						for(Hero h : players){
+							if(h == null)
+								continue;
+							if(h.getRow() == cR + moveR && 
+								h.getColumn() == cC + moveC)
+								continue eachMonster;
+						}
+						//Do not move to position of another monster
+						for(Monster n : monsters)
+							if(n.getRow() == cR + moveR &&
+								n.getColumn() == cC + moveC)
+								continue eachMonster;
 						m.move(moveR, moveC);
 						break;
 					}else{//If no opening, try next direction

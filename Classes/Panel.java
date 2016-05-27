@@ -147,19 +147,25 @@ public class Panel extends JPanel{
 		//------//
 		
 		//Check if any gliding images have not reached desired position
-		boolean playersDoneGliding = true;
-			//If any players are not done gliding
-		for(byte i = 0; i < players.length; i++){
-			if(players[i] == null)
+		boolean entitiesDoneGliding = true;
+			//If any players or monsters are not done gliding
+		for(Hero p : players){
+			if(p == null)
 				continue;
-			if(! players[i].doneGliding()){
-				playersDoneGliding = false;
+			if(! p.doneGliding()){
+				entitiesDoneGliding = false;
+				break;
+			}
+		}
+		for(Monster m : monsters){
+			if(! m.doneGliding()){
+				entitiesDoneGliding = false;
 				break;
 			}
 		}
 		
 		//Draw stuff for combat
-		if(inCombat && playersDoneGliding){
+		if(inCombat && entitiesDoneGliding){
 			//Draw clickable options for Melee, Ranged, and Magic attacks
 			g.drawImage(DungeonQuest.loadImage("Board/MeleeIcon.png"), boardX + 810, boardY, null);
 			g.drawImage(DungeonQuest.loadImage("Board/RangeIcon.png"), boardX + 870, boardY, null);
@@ -185,11 +191,11 @@ public class Panel extends JPanel{
 			//Do the following of either out of dungeon or dead
 			players[i] = null;
 			advanceTurn();
-			playersDoneGliding = false;
+			entitiesDoneGliding = false;
 		}
 		
 		//Rotate current Hero's room, if it is a rotating room
-		if(playersDoneGliding){
+		if(entitiesDoneGliding){
 				//Find "previous" player, as advanceTurn() has already been called
 			byte prevInd = turnInd;
 			do{
@@ -234,7 +240,7 @@ public class Panel extends JPanel{
 		}
 		lastUpdate = System.currentTimeMillis();//Update time of last update
 		//Check if we need to repaint screen (will stop repainting to save resources)
-		if(message != null || ! playersDoneGliding || ! sun.doneGliding()){
+		if(message != null || ! entitiesDoneGliding || ! sun.doneGliding()){
 			repaint(0, 0, 1200, 750);
 		}
    }
@@ -278,11 +284,20 @@ public class Panel extends JPanel{
 				return;
 		if(! sun.doneGliding())
 			return;
+			
+		/*
+			Find coordinates of Tile to check click from (make coordinates 
+			relative to tile), same as player's current coordinates
+		*/
+		byte cR = players[turnInd].getRow(),
+			  cC = players[turnInd].getColumn();
 		
-		//Figure out which tile is being clicked
-		byte cR = (byte)((y - boardY) / 60),//Click column (of board)
-			  cC = (byte)((x - boardX) / 60);//		  row
-			  
+		//Make sure click is not too far away from hero's tile
+		if(Math.abs((cR * 60 + boardY + 30) - y) >= 100 || Math.abs((cC * 60 + boardX + 30) - x) >= 100){
+			cR = -1;
+			cC = -1;
+		}
+		
 		//"Side" of tile being clicked	  
 		final byte dir;
 		if(grid.get(cR, cC) != null){
@@ -297,13 +312,13 @@ public class Panel extends JPanel{
 		if(players[turnInd].getEdgeAlign()){
 			//Figure out side of tile Hero is aligned with
 			final byte heroDir;
-			if(players[turnInd].getY() == players[turnInd].getRow() * 60 + boardY - 17)			//Aligned top
+			if(players[turnInd].getY() == cR * 60 + boardY - 17)			//Aligned top
 				heroDir = 1;
-			else if(players[turnInd].getX() == players[turnInd].getColumn() * 60 + boardX + 42)	//Aligned left
+			else if(players[turnInd].getX() == cC * 60 + boardX + 42)	//Aligned left
 				heroDir = 2;
-			else if(players[turnInd].getY() == players[turnInd].getRow() * 60 + boardY + 47)		//Aligned bottom
+			else if(players[turnInd].getY() == cR * 60 + boardY + 47)	//Aligned bottom
 				heroDir = 3;
-			else if(players[turnInd].getX() == players[turnInd].getColumn() * 60 + boardX + 2)	//Aligned left
+			else if(players[turnInd].getX() == cC * 60 + boardX + 2)		//Aligned left
 				heroDir = 4;
 			else
 				heroDir = -1;
@@ -345,11 +360,6 @@ public class Panel extends JPanel{
 						inCombat = false;
 					}else{//If monster still alive
 						//Monster counter attack
-						/*
-							//Wait a few (3) seconds so that previous message can be read
-						final long startTime = System.currentTimeMillis();
-						while(startTime + 3000 > System.currentTimeMillis()){}
-						*/
 							//Damage hero
 						final byte damage = monsters.get(combatInd).getAttack();
 						players[turnInd].changeHealth((byte)(-damage));
@@ -372,12 +382,16 @@ public class Panel extends JPanel{
 			}
 			//--End Combat--//
 			
+			/*
+				If mouse click was out of bounds, return. Only returning now because the combat process must
+				track clicks on attack buttons, which otherwise would be ignored.
+			*/
+			if(cR == -1)
+				return;
+			
 			//--Obstacle--//
 				//If player is currently at a hole or cave-in tile
-			final char tileSide = grid.get(players[turnInd].getRow(), players[turnInd].getColumn()).getSide((byte)0);
-				//Weed out the mouse click if not on current tile or was at center of tile (we only want edge movement)
-			if(cR != players[turnInd].getRow() || cC != players[turnInd].getColumn() || dir == 0)
-				return;
+			final char tileSide = grid.get(cR, cC).getSide((byte)0);
 				//Compare click direction and hero direction
 			if(dir == heroDir){//Player chooses to back away from obstacle
 				//DO NOTHING
@@ -398,13 +412,6 @@ public class Panel extends JPanel{
 						setMessage("You survive");
 					}
 					
-				}else{																//Inky hole stuff
-					if(Math.random() < 0){
-						setMessage("You trip, fall and die...");
-						players[turnInd].changeHealth((byte)(-100));
-					}else{
-						setMessage("You survive");
-					}
 				}
 			}
 			players[turnInd].setEdgeAlign(false);
@@ -412,20 +419,28 @@ public class Panel extends JPanel{
 			return;
 			//--End Obstacle Stuff--//
 		}
-		
-		//Check if tile clicked "contains" Hero whom has the turn
-		if(cR != players[turnInd].getRow() || cC != players[turnInd].getColumn())
+	
+		//Ignore out of range clicks
+		if(cR == -1)
 			return;
-		
-		//Check if any tile is there
-		if(grid.get((byte)cR, (byte)cC) == null)
-			return;
-		
 		//Do stuff based on direction of click (and tile contents)
 		if(dir == 0){			//Center action
 			centerAction(cR, cC);
 		}else{							//Side movement
-			moveHero(dir);
+			//If at inky darkness, choose random valid direction (ignore player input)
+			if(grid.get((byte)cR, (byte)cC).getSide((byte)0) == 'I'){
+				byte randDir = (byte)(Math.random() * 4 + 1);
+					//Make sure we move to valid spot (not wall)
+				for(byte i = 0; i < 4; i++){
+					if(grid.get((byte)cR, (byte)cC).getSide((byte)randDir) != 'W')
+						break;
+					randDir++;
+					if(randDir == 5)
+						randDir = 1;
+				}
+				moveHero(randDir);
+			}else//If not at inky darkness
+				moveHero(dir);
 		}
 	}
    
@@ -434,7 +449,8 @@ public class Panel extends JPanel{
 	//pre:
 	/*
 		post: Advances turnInd to match index of next non-null player in array players.
-				Also, advances sun token if player one has just gone.
+				Also, advances sun token if player one has just gone. Further, call method
+				to move all monsters randomly.
 	*/
 	private void advanceTurn(){
 		//Advancing turnInd
@@ -447,6 +463,8 @@ public class Panel extends JPanel{
 			if(players[turnInd] != null)
 				break;
 		}
+		//Monster wandering
+		moveMonsters();
 	}
 	
 	//pre: dir = 1 (North), 2 (East), 3 (South), or 4 (West)
@@ -546,15 +564,15 @@ public class Panel extends JPanel{
 				Make sure there is no center obstacle if Hero has just moved from obstacle tile
 				(Hella graphical jankiness otherwise)
 			*/
-			if(grid.get(cR, cC).getSides()[0] == 'H' ||
-				grid.get(cR, cC).getSides()[0] == 'C' ||
-				grid.get(cR, cC).getSides()[0] == 'I'){
-				if(Math.random() < 0.3)
-					forceSides[0] = 'S';
-				else if(Math.random() < 0.3)
-					forceSides[0] = 'T';
-				else
-					forceSides[0] = 'R';
+			switch(grid.get(cR, cC).getSides()[0]){
+				case('C'): ;
+				case('H'): //Force any center EXCEPT obstacles
+							  if(Math.random() < 0.3)
+							     forceSides[0] = 'S';
+							  else if(Math.random() < 0.3)
+								  forceSides[0] = 'T';
+							  else
+								  forceSides[0] = 'R';
 			}
 			//Force walls on all edges of board
 			if(cC + moveC == 0)			//If on left edge
@@ -576,19 +594,26 @@ public class Panel extends JPanel{
 			/*
 				Add monster if:
 					- Random probability
+					- Monster not already at position
 					- If going to tile is solid in center
 					- If Hero was NOT just in a obstacle or monster situation
 			*/
 			if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0] == 'S'){
 				boolean createMonster = true;//Should a monster be created later?
-				//Check if hero just came from obstacle tile
+					//Check if hero just came from obstacle tile
 				switch(grid.get(cR, cC).getSides()[0]){
 					case('H'):
-					case('C'):
-					case('I'): createMonster = false;
+					case('C'): createMonster = false;
+				}
+					//Check if any monster is already at (cR + moveR, cC + moveC)
+				for(Monster m : monsters){
+					if(m.getRow() == cR + moveR && m.getColumn() == cC + moveC){
+						createMonster = false;
+						break;
+					}
 				}
 				//Create monster
-				if(createMonster && Math.random() < 0.25){
+				if(createMonster && Math.random() < 1){
 					byte gen = (byte)(Math.random() * 5);
 					String name;//Name of monster
 					if(gen == 0)
@@ -621,8 +646,7 @@ public class Panel extends JPanel{
 		//Check if entering cave-in or other obstacle
 		switch(grid.get((byte)(cR + moveR), (byte)(cC + moveC)).getSides()[0]){
 			case('C'): ;
-			case('H'): ;
-			case('I'): players[turnInd].setEdgeAlign(true);//Wait on edge of tile (not in obstacle)
+			case('H'): players[turnInd].setEdgeAlign(true);//Wait on edge of tile (not in obstacle)
 						  repaint(0, 0, 1200, 750);
 						  return;
 		}
@@ -678,6 +702,57 @@ public class Panel extends JPanel{
 		advanceTurn();
 		//Reflect any graphical changes
 		repaint(0, 0, 1200, 750);
+	}
+	
+	//pre:
+	//post: Moves all monsters (which are not in combat) by one row or column move randomly, if possible
+	private void moveMonsters(){
+		eachMonster:
+			for(byte i = 0; i < monsters.size(); i++){
+				Monster m = monsters.get(i);
+				if(Math.random() < 0.6)//Do not always move monster
+					continue;
+				final byte cR = m.getRow(),		//Current row position
+							  cC = m.getColumn();	//			 column
+					/*
+						Figure out if in combat. For each Hero, check if at same position. 
+						If so, monster is in combat and should not be moved.
+					*/
+				for(byte k = 0; k < 4; k++){
+					if(players[turnInd] == null)
+						continue;
+					if(players[turnInd].getRow() == cR &&
+						players[turnInd].getColumn() == cC)
+						continue eachMonster;
+				}
+					//Random direction to move monster
+				byte randDir = (byte)(Math.random() * 4 + 1);
+					//Try to find first valid direction for movement (open side)
+				for(byte j = 0; j < 4; j++){
+					if(grid.get(cR, cC) != null &&
+						grid.get(cR, cC).getSide(randDir) == 'O'){//Open side found
+						//Valid move found, execute it
+						byte moveR = 0, moveC = 0;//(r, c) to move monster by
+						if(randDir == 1)
+							moveR = -1;
+						else if(randDir == 2)
+							moveC = 1;
+						else if(randDir == 3)
+							moveR = 1;
+						else if(randDir == 4)
+							moveC = -1;
+						//Make sure tile already exists at wanted position
+						if(grid.get((byte)(cR + moveR), (byte)(cC + moveC)) == null)
+							continue eachMonster;
+						m.move(moveR, moveC);
+						break;
+					}else{//If no opening, try next direction
+						randDir++;
+						if(randDir == 5)
+							randDir = 0;
+					}
+				}
+			}
 	}
 	
 	//--Sun Token Class--//

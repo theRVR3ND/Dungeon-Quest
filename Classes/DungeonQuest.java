@@ -18,7 +18,8 @@ public class DungeonQuest{
    public static JFrame f;                //The one and only JFrame for displaying
    public static Menu m;                  //Menu screen
    public static Panel p;                 //Main game content pane
-   
+   public static EndGame e;					//End game menu
+	
    //--Main--//
 
    public static void main(String[] args){
@@ -56,11 +57,21 @@ public class DungeonQuest{
 		
       //--The GAME--//
 		
-		while(p.gameGoing()){
-			System.out.print("");
-		}
+		while(p.gameGoing()){}
 		
 		//--End Game--//
+		
+		e = new EndGame();
+		p = null;
+		
+		f.setTitle("Dungeon Quest || The End");
+      f.remove(f.getContentPane());
+      f.setContentPane(e);
+      f.validate();
+      f.repaint();
+		
+		while(e.stillWaiting()){}
+		
 		System.exit(0);
    }
    

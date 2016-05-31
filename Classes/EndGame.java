@@ -1,16 +1,19 @@
 import java.awt.Graphics;
 import javax.swing.JPanel;
+import java.awt.event.KeyEvent;
 
 public class EndGame extends JPanel{
 
 	private TextBox[] names;				//For each player to enter their name
+	private byte modInd;						//Index of text box in names[] which is being modified
 
 	//--Initialize--//
 	
 	public EndGame(){
-		names = new TextBox[0];
+		names = new TextBox[DungeonQuest.p.numPlayers()];//One name for each player
 		for(byte i = 0; i < names.length; i++)
 			names[i] = new TextBox((byte)10);//Allow for max. 10-length names
+		modInd = 0;
 	}
 	
 	//--Graphics--//
@@ -18,7 +21,7 @@ public class EndGame extends JPanel{
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
 		//------//
-		System.out.println("F");
+		System.out.println("K");
 		//Draw background
 		g.drawImage(DungeonQuest.loadImage("Menu/MenuScreen.png"), 0, 0, 1200, 750, null);
 		//Draw names
@@ -38,9 +41,17 @@ public class EndGame extends JPanel{
 	//--Mutate--//
 	
 	//pre:
-	//post: Performs any actions needed based on mouse click
-	public void mouseClick(int x, int y){
-		//Check for click on textbox area
+	//post: Performs any actions needed based on key press
+	public void keyPress(int keyCode){
+		//Tab (and dab)
+			//Advance index of names[] which is being typed into
+		if(keyCode == KeyEvent.VK_TAB){
+			modInd++;
+			if(modInd == names.length)
+				modInd = 0;
+		}
+		//Add key char to current textbox (alphabetical chars only)
+			//All valid key codes (of alpha chars) are less than
 	}
 	
 	//--TextBox Class--//

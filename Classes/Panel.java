@@ -17,7 +17,6 @@ public class Panel extends JPanel{
 	private byte messageUpdates;								//Number of screen updates message should be displayed for
 	private SunToken sun;										//Token to keep track of day
 	
-	public static byte numPlayers;							//Number of players (at start of game)
 	public static final byte boardX = 50,					//Used for easier shifting of board position
 							 		 boardY = 70;
 	
@@ -40,7 +39,6 @@ public class Panel extends JPanel{
 		sun = new SunToken();
   		turnInd = 0;
 		lastUpdate = 0;
-		numPlayers = (byte)playerNames.length;
 		
       //Create heros based on names from menu
       players = new Hero[playerNames.length];
@@ -150,20 +148,17 @@ public class Panel extends JPanel{
 		//Check if any gliding images have not reached desired position
 		boolean entitiesDoneGliding = true;
 			//If any players or monsters are not done gliding
-		for(Hero p : players){
-			if(p == null)
-				continue;
-			if(! p.doneGliding()){
+		for(byte i = 0; i < players.length; i++)
+			if(players[i] != null && ! players[i].doneGliding()){
 				entitiesDoneGliding = false;
 				break;
 			}
-		}
-		for(Monster m : monsters){
-			if(! m.doneGliding()){
-				entitiesDoneGliding = false;
-				break;
-			}
-		}
+		if(entitiesDoneGliding)
+			for(Monster m : monsters)
+				if(! m.doneGliding()){
+					entitiesDoneGliding = false;
+					break;
+				}
 		
 		//Draw stuff for combat
 		if(inCombat && entitiesDoneGliding){
@@ -174,8 +169,8 @@ public class Panel extends JPanel{
 		}
 		
       /*
-			Check if hero has glided out of dungeon area or is dead, 
-			if so, repaint to "hide" Hero (repaint over)
+			Check if hero has glided out of dungeon area, sun has set, or is dead, 
+			if so, take hero out of game and repaint to "hide" Hero (repaint over)
 		*/
 		for(byte i = 0; i < players.length; i++){
 			if(players[i] == null)
@@ -188,6 +183,11 @@ public class Panel extends JPanel{
 				//If Hero is killed
 			}else if(players[i].getHealth() <= 0){
 				setMessage(players[i].getName() + " has been smitten...");
+				//If sun has set
+			}else if(sun.isNight() && sun.doneGliding()){
+				players[i] = null;
+				entitiesDoneGliding = false;
+				continue;
 			}else
 				continue;
 			//Do the following of either out of dungeon or dead
@@ -251,19 +251,18 @@ public class Panel extends JPanel{
 	//--Access--//
 	
 	//pre:
-	//post: Returns true if at least one player is still in game or message is still up
+	//post: Returns true if at least one player is still in game
 	public boolean gameGoing(){
-			//Check if at least one live hero
-		for(Hero h : players)
-			if(h != null)//All dead/exited players will be or have been set to null
+		for(byte i = 0; i < players.length; i++)
+			if(players[i] != null)//At least one non-null player
 				return true;
-		/*
-			//If message still up
-		if(messageUpdates > 0){
-			repaint(0, 0, 1200, 750);
-			return true;
-		}*/
 		return false;
+	}
+	
+	//pre:
+	//post: Returns number of total players (in or out of game)
+	public byte numPlayers(){
+		return (byte)players.length;
 	}
 	
    //--Mutate--//
@@ -356,7 +355,7 @@ public class Panel extends JPanel{
 					
 					//Check if monster has just been smitted
 					if(monsters.get(combatInd).getHealth() <= 0){
-						message += "and smites it";//Add on to current message
+						message += "\nand smites it";//Add on to current message
 						monsters.remove(combatInd);
 						players[turnInd].setEdgeAlign(false);
 						inCombat = false;
@@ -451,8 +450,8 @@ public class Panel extends JPanel{
 	//pre:
 	/*
 		post: Advances turnInd to match index of next non-null player in array players.
-				Also, advances sun token if player one has just gone. Further, call method
-				to move all monsters randomly.
+				Also, advances sun token if player one has just gone. Further, call method 
+				to move monsters randomly.
 	*/
 	private void advanceTurn(){
 		//Advancing turnInd
@@ -465,6 +464,9 @@ public class Panel extends JPanel{
 			if(players[turnInd] != null)
 				break;
 		}
+		//If sun has "set", tell players that
+		if(sun.isNight())
+			setMessage("The sun sets, and Kalladra\nsmites all the remaining heroes");
 		//Monster wandering
 		moveMonsters();
 	}
@@ -661,15 +663,16 @@ public class Panel extends JPanel{
 	//pre:
 	//post: Performs action dictated by contents of center of tile at (r, c) in grid
 	private void centerAction(byte r, byte c){
-		//Figure out what is in the center
-		char cent = grid.get(r, c).getSide((byte)0);
-		if(cent == 'S' || cent == 'R'){			//Solid ground or rotating room (search)
+		//Figure out tile's center contents
+		final char cent = grid.get(r, c).getSides()[0];
+		//Solid ground or rotating room (search)
+		if(cent == 'S'){
          //Check if hero has searched twice consecutively in current room without moving
          if(players[turnInd].getNumSearches() >= 2){
 				//Check if no moves are actually possible
 				char[] sides = grid.get(r, c).getSides();
 				if(sides[1] == 'W' && sides[2] == 'W' && sides[3] == 'W' && sides[4] == 'W'){
-					setMessage(players[turnInd].getName() + " is stuck forever in the dungeon");
+					setMessage(players[turnInd].getName() + " is stuck forever in the\ndungeon");
 					players[turnInd].changeHealth((byte)(-100));
 					repaint(0, 0, 1200, 750);
 				}else{
@@ -687,23 +690,21 @@ public class Panel extends JPanel{
 			}else{
 				setMessage("Nothing shows up");
 			}
-		}else if(cent == 'G'){						//Treasure room (draw treasure card)
+			
+		//Treasure room (draw treasure card)
+		}else if(cent == 'G'){
 			if(Math.random() < 0.5){
 				setMessage("The Dragon slumbers...");
 				players[turnInd].addTreasure((byte)(Math.random() * 50 + 50));
 			}else{
 				setMessage("Kalladra awakes and burns\n" + players[turnInd].getName() + " with Dragon Breath");
 				players[turnInd].changeHealth((byte)(-100));
+				repaint(0, 0, 1200, 750);
 			}
-		}/*else if(cent == 'S'){
-		
-		}*/
-		else
+		}else
 			return;
-		//Give next player the turn
+		//If valid action was performed, do the following:
 		advanceTurn();
-		//Reflect any graphical changes
-		repaint(0, 0, 1200, 750);
 	}
 	
 	//pre:
@@ -720,7 +721,7 @@ public class Panel extends JPanel{
 						Figure out if in combat. For each Hero, check if at same position. 
 						If so, monster is in combat and should not be moved.
 					*/
-				for(byte k = 0; k < 4; k++){
+				for(byte k = 0; k < players.length; k++){
 					if(players[turnInd] == null)
 						continue;
 					if(players[turnInd].getRow() == cR &&

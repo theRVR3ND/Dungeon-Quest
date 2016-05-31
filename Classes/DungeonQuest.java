@@ -1,7 +1,7 @@
 /*
    Driver program for Dragon Quest game
    By: Kelvin Peng
-   under guidance of Reverend Oberle
+   under the guidance of Reverend Oberle
    for the APCS Final Project 2015-2016
 */
 
@@ -26,6 +26,7 @@ public class DungeonQuest{
       //--Initialize--//
       
       f = new JFrame("Dungeon Quest || Begin your Quest...");
+		f.setIconImage(loadImage("Board/FrameIcon.png"));
       f.setSize(1200, 750);
       f.setLocation(20, 20);
       f.setResizable(false);
@@ -57,21 +58,31 @@ public class DungeonQuest{
 		
       //--The GAME--//
 		
-		while(p.gameGoing()){}
+		while(p.gameGoing()){
+			System.out.print("");
+		}
 		
 		//--End Game--//
 		
+		//Wait two seconds before changing screen to show end game
+		if(true){
+			final long start = System.currentTimeMillis();
+			while(start + 2000 > System.currentTimeMillis()){}
+		}
+		
 		e = new EndGame();
+		p = null;
 		
 		f.setTitle("Dungeon Quest || The End");
       f.remove(f.getContentPane());
+      f.removeMouseListener(f.getMouseListeners()[0]);
       f.setContentPane(e);
       f.validate();
       f.repaint();
 		
-		p = null;
-		
-		while(e.stillWaiting()){}
+		while(e.stillWaiting()){
+			System.out.print("");
+		}
 		
 		System.exit(0);
    }
@@ -95,20 +106,10 @@ public class DungeonQuest{
 			name = getDirectory() + "Resources/" + name;//Change name to image's directory
 			return ImageIO.read(new File(name));
 		}catch(Exception e){
-			System.out.println("Could not load " + name + ". Please make sure it exists in \"Resources\" folder");
+			System.out.println("Could not load " + name + ". Please make sure it exists in \"Resources\" subfolder");
 			System.exit(1);
 		}
 		return null;
-   }
-   
-   //pre: 
-   //post: Returns sum of values from simulated roll of numDice dies, each with numSide sides
-   public static byte rollDice(byte numDice, byte numSide){
-      byte sum = 0;
-      for(byte i = 0; i < numDice; i++){
-         sum += (byte)(Math.random() * numSide + 1);
-      }
-      return sum;
    }
    
    //--Listener Classes--//
@@ -118,16 +119,17 @@ public class DungeonQuest{
       
       public void mouseExited(MouseEvent e){}
       
-      public void mouseClicked(MouseEvent e){
-			if(m != null)			//If menu open
-				m.mouseClick(e.getX() - 3, e.getY() - 26);
-			else if(p != null)	//If game board panel open
-				p.mouseClick(e.getX() - 3, e.getY() - 26);
-		}
-      
       public void mouseReleased(MouseEvent e){}
       
       public void mousePressed(MouseEvent e){}
+		
+		public void mouseClicked(MouseEvent e){
+			if(m != null)			//If menu open
+				m.mouseClick(e.getX() - 3, e.getY() - 26);
+				
+			else if(p != null)	//If game board panel open
+				p.mouseClick(e.getX() - 3, e.getY() - 26);
+		}
    }
    
    public static class keyListen implements KeyListener{

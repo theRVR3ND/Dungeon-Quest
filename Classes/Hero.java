@@ -10,8 +10,9 @@ public class Hero extends Entity{
    
 	private final byte maxLife;				//Max life of Hero. Equivallent to initial life.
 	private boolean alignEdge;					//Should Hero graphically not move to center of tile?
-	private byte treasure;						//Amout of treasure player has
+	private int treasure;						//Amount of treasure player has
    private byte numSearches;              //Number of consecutive searches this hero has performed
+	private boolean secretDoor;				//Has Hero found a secret door?
    private final byte strength,           //Hero's might and stamina
                       agility,            //Hero's spped ability to react quickly
                       armor,              //Hero's ability to prevent or ignore wounds
@@ -26,6 +27,7 @@ public class Hero extends Entity{
 		super();
 		treasure = 0;
 		maxLife = super.getHealth();
+		secretDoor = false;
       strength = 0;
       agility = 0;
       armor = 0;
@@ -70,6 +72,7 @@ public class Hero extends Entity{
       flavorText = 		text[2];
 		
       super.setHealth(stats[0]);
+		secretDoor = false;
       strength = 	stats[1];
       agility = 	stats[2];
       armor = 		stats[3];
@@ -89,6 +92,7 @@ public class Hero extends Entity{
       flavorText = 		text[2];
 		
       super.setHealth(stats[0]);
+		secretDoor = false;
       strength = 	stats[1];
       agility = 	stats[2];
       armor = 		stats[3];
@@ -155,7 +159,7 @@ public class Hero extends Entity{
 	
 	//pre:
 	//post: Returns treasure which hero has accquired
-	public byte getTreasure(){
+	public int getTreasure(){
 		return treasure;
 	}
    
@@ -204,12 +208,27 @@ public class Hero extends Entity{
       return numSearches;
    }
 	
+	//pre:
+	/*
+		post: Returns true if Hero should be allowed
+				to clip through wall
+	*/
+	public boolean foundSecretDoor(){
+		return secretDoor;
+	}
+	
    //--Mutate--//
    
 	//pre:
 	//post: Sets alignEdge to edgeAlign
 	public void setEdgeAlign(boolean edgeAlign){
 		alignEdge = edgeAlign;
+	}
+	
+	//pre:
+	//post: Sets secretDoor to secretDoor
+	public void setSecretDoor(boolean secretDoor){
+		this.secretDoor = secretDoor;
 	}
 	
    //pre:
@@ -220,7 +239,7 @@ public class Hero extends Entity{
    
 	//pre:
 	//post:
-	public void addTreasure(byte i){
+	public void addTreasure(int i){
 		treasure += i;
 		if(treasure < 0)
 			treasure = 0;

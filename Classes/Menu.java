@@ -59,6 +59,8 @@ public class Menu extends JPanel{
    
    //--Graphics--//
    
+	//pre: g != null
+	//post: Draws menu for player selection stuff
    public void paintComponent(Graphics g){
       super.paintComponent(g);
       //------//
@@ -88,6 +90,8 @@ public class Menu extends JPanel{
 	
    //--Mutate--//
    
+	//pre:
+	//post: Performs actions (button clicking) based on mouse click at (x, y)
    public void mouseClick(int x, int y){
 		//Check for start game button click
 		if(buttons[0].isDown() || buttons[1].isDown() || 

@@ -15,6 +15,10 @@ public class Monster extends Entity{
 		super.setHealth((byte)10);
 	}
 	
+	/*
+		ARGS: name is monster's name (type), r is row position 
+				on board, c is column position on board
+	*/
 	public Monster(String name, byte r, byte c){
 		super(name, r, c);
 		super.setHealth((byte)10);
@@ -22,6 +26,8 @@ public class Monster extends Entity{
 	
 	//--Graphics--//
 	
+	//pre: g != null
+	//post: Calls super draw method, sending directory of monster images
 	public void draw(Graphics g){
 		super.draw("Monsters/", g);
 	}

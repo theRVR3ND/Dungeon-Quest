@@ -79,6 +79,8 @@ public class Panel extends JPanel{
    //pre: g != null
    //post: Updates screen once, while moving all neccessary things
    public void paintComponent(Graphics g){
+		if(DungeonQuest.e != null)
+			return;
       super.paintComponent(g);
       //------//
 		//Wait until enough time has passed since last call
@@ -237,8 +239,24 @@ public class Panel extends JPanel{
 					grid.get(h.getRow(), h.getColumn()).setSides(sides);
 					//Reflect changes
 					repaint(0, 0, 1200, 750);
+					
+				}else if(grid.get(h.getRow(), h.getColumn()).getSide((byte)0) == 'T'){//Trap room
+					//Perform trap card actions based on random gen
+					final byte gen = (byte)(Math.random() * 6 + 1);
+					if(gen == 1){//Explosion
+					
+					}else if(gen == 2){//Crossfire trap
+					
+					}else if(gen == 3){//Poisonous gas
+					
+					}else if(gen == 4){//Poisonous snakes
+					
+					}else{//if(gen > 4)	Trapdoor
+					
+					}
 				}
 			}
+			repaint(0, 0, 1200, 750);
 		}
 		lastUpdate = System.currentTimeMillis();//Update time of last update
 		//Check if we need to repaint screen (will stop repainting to save resources)
@@ -268,7 +286,7 @@ public class Panel extends JPanel{
    //--Mutate--//
    
 	//pre: message != null
-	//post: Sets message to message and resets update counter
+	//post: Sets message to message, if master message is null and resets update counter
 	public void setMessage(String message){
 		this.message = message;
 		messageUpdates = 50;
@@ -301,12 +319,9 @@ public class Panel extends JPanel{
 		
 		//"Side" of tile being clicked	  
 		final byte dir;
-		if(grid.get(cR, cC) != null){
+		if(grid.get(cR, cC) != null)
 			dir = grid.get(cR, cC).mouseClick(x - cC * 60 - boardX, y - cR * 60 - boardY);
-			//Ignore clicks on walls
-			if(grid.get(cR, cC).getSides()[dir] == 'W')
-				return;
-		}else
+		else
 			dir = -2;
 			
 		//Combat or obstacle stuff
@@ -355,7 +370,7 @@ public class Panel extends JPanel{
 					
 					//Check if monster has just been smitted
 					if(monsters.get(combatInd).getHealth() <= 0){
-						message += "\nand smites it";//Add on to current message
+						message += "\nand smites the " + monsters.get(combatInd).getName();//Add on to current message
 						monsters.remove(combatInd);
 						players[turnInd].setEdgeAlign(false);
 						inCombat = false;
@@ -370,12 +385,15 @@ public class Panel extends JPanel{
 					//Check if player tried to escape monster
 					if(dir == heroDir){
 						//Try to escape monster
-						if(false){//If unable to escape
-						
+						if(Math.random() < 0.7){//If unable to escape
+							final byte hurt = (byte)(3 * Math.random() + 2);
+							players[turnInd].changeHealth((byte)(-hurt));
+							setMessage(players[turnInd].getName() + " tries to escape but is\nblocked and loses " + hurt + " health");
 						}else{//If able to escape
 							inCombat = false;
 							players[turnInd].setEdgeAlign(false);
 							moveHero(dir);
+							setMessage(players[turnInd].getName() + " narrowly escapes");
 						}
 					}
 				}
@@ -420,16 +438,14 @@ public class Panel extends JPanel{
 			return;
 			//--End Obstacle Stuff--//
 		}
-	
-		//Ignore out of range clicks
-		if(cR == -1)
-			return;
+		
 		//Do stuff based on direction of click (and tile contents)
-		if(dir == 0){			//Center action
+		if(dir == 0){					//Center action
 			centerAction(cR, cC);
 		}else{							//Side movement
 			//If at inky darkness, choose random valid direction (ignore player input)
-			if(grid.get((byte)cR, (byte)cC).getSide((byte)0) == 'I'){
+			if(grid.get((byte)cR, (byte)cC) != null &&
+				grid.get((byte)cR, (byte)cC).getSide((byte)0) == 'I'){
 				byte randDir = (byte)(Math.random() * 4 + 1);
 					//Make sure we move to valid spot (not wall)
 				for(byte i = 0; i < 4; i++){
@@ -508,9 +524,17 @@ public class Panel extends JPanel{
 			return;
 		
 		//Check if current tile has an opening at moving direction, or perform needed action to move
-		if(side == 'W')				//If wall
-			return;
-			
+		if(side == 'W'){				//If wall
+			/*
+				If hero has not found a secret door, do nothing. If a secret door 
+				HAS been found, allow hero to phase through walls.
+			*/
+			if(players[turnInd].foundSecretDoor())
+				players[turnInd].setSecretDoor(false);
+			else
+				return;
+		}
+		
 		else if(side == 'D'){		//If door
 			//Draw a door card
 			if(Math.random() < 0.4){
@@ -634,6 +658,7 @@ public class Panel extends JPanel{
 					//Tell hero it is in combat
 					players[turnInd].setEdgeAlign(true);
 					inCombat = true;
+					return;
 				}
 			}
 			//--End Monster Creation Stuff--//
@@ -644,7 +669,7 @@ public class Panel extends JPanel{
 					players[turnInd].setEdgeAlign(true);
 					inCombat = true;
 					repaint(0, 0, 1200, 750);
-					return;
+					return;//Do not advance turn
 				}
 		}
 		//Check if entering cave-in or other obstacle
@@ -654,6 +679,8 @@ public class Panel extends JPanel{
 						  repaint(0, 0, 1200, 750);
 						  return;
 		}
+		//Make sure hero does not clip through any more walls
+		players[turnInd].setSecretDoor(false);
 		//Give next player the turn
 		advanceTurn();
 		//Reflect any graphical changes
@@ -683,19 +710,43 @@ public class Panel extends JPanel{
          //Tell hero to keep track of number of searches
          players[turnInd].searched();
          //Actual probability/searching
-			if(Math.random() < 0.5){
-            byte gen = (byte)(Math.random() * 50 + 25);
-            setMessage("You find " + gen + " pieces of gold...");
-            players[turnInd].addTreasure(gen);
-			}else{
-				setMessage("Nothing shows up");
+			final byte gen = (byte)(Math.random() * 10 + 1);
+			short treasure = -1;//Treasure gained from searching, -1 if no treasure found
+			if(gen == 1){//Potion
+				setMessage("Potion");
+				
+			}else if(gen == 2){//Golden guineas
+				setMessage("You find 10 golden guineas");
+				treasure = 10;
+				
+			}else if(gen == 3){//Giant centipede
+				setMessage("Giant Centipede");
+				
+			}else if(gen == 4){//Ring
+				setMessage("You find a ring worth 90\nguineas");
+				treasure = 90;
+				
+			}else if(gen == 5){//Jewellry
+				setMessage("You find jewellry worth\n200 guineas");
+				treasure = 200;
+				
+			}else if(gen == 6){//Secret Door
+				setMessage("You find a secret door");
+				players[turnInd].setSecretDoor(true);
+			
+			}else{//if(gen > 6){	Empty
+				setMessage("Nothing shows up...");
 			}
+			
+			if(treasure != -1)
+				players[turnInd].addTreasure(treasure);
 			
 		//Treasure room (draw treasure card)
 		}else if(cent == 'G'){
-			if(Math.random() < 0.5){
-				setMessage("The Dragon slumbers...");
-				players[turnInd].addTreasure((byte)(Math.random() * 50 + 50));
+			if(Math.random() <= 7.0 / 8){
+				final int gen = (int)(Math.random() * 45) * 10 + 100;//Treasure token
+				setMessage("The Dragon slumbers and you\ntake " + gen + " gold");
+				players[turnInd].addTreasure(gen);
 			}else{
 				setMessage("Kalladra awakes and burns\n" + players[turnInd].getName() + " with Dragon Breath");
 				players[turnInd].changeHealth((byte)(-100));

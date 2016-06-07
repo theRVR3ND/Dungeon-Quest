@@ -10,7 +10,8 @@ public class EndGame extends JPanel{
 	//--Initialize--//
 	
 	public EndGame(){
-		names = new TextBox[DungeonQuest.p.numPlayers()];//One name for each player
+		//names = new TextBox[DungeonQuest.p.numPlayers()];//One name for each player
+		names = new TextBox[1];
 		for(byte i = 0; i < names.length; i++)
 			names[i] = new TextBox((byte)10);//Allow for max. 10-length names
 		modInd = 0;
@@ -18,6 +19,8 @@ public class EndGame extends JPanel{
 	
 	//--Graphics--//
 	
+	//pre: g != null
+	//post: Draws all textboxes and stuff
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
 		//------//
@@ -33,10 +36,6 @@ public class EndGame extends JPanel{
 	}
 	
 	//--Access--//
-	
-	public boolean stillWaiting(){
-		return true;
-	}
 	
 	//--Mutate--//
 	
@@ -66,6 +65,10 @@ public class EndGame extends JPanel{
 	
 		//--Initialize--//
 	
+		/*
+			ARGS: size is maximum number of chars 
+					which can be entered in text box
+		*/
 		public TextBox(byte size){
 			this.size = size;
 			text = new char[size];
@@ -73,12 +76,16 @@ public class EndGame extends JPanel{
 		
 		//--Graphics--//
 		
+		//pre: g != null
+		//post: Draws textbox at (x, y) in graphics
 		public void draw(Graphics g, int x, int y){
 			g.drawString(toString(), x, y);
 		}
 		
 		//--Access--//
 		
+		//pre:
+		//post: Returns string of all chars currently in textbox
 		public String toString(){
 			return new String(text, 0, onInd);
 		}

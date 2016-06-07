@@ -64,10 +64,10 @@ public class DungeonQuest{
 		
 		//--End Game--//
 		
-		//Wait two seconds before changing screen to show end game
+		//Wait one second before changing screen to show end game
 		if(true){
 			final long start = System.currentTimeMillis();
-			while(start + 2000 > System.currentTimeMillis()){}
+			while(start + 1000 > System.currentTimeMillis()){}
 		}
 		
 		e = new EndGame();
@@ -76,15 +76,15 @@ public class DungeonQuest{
 		f.setTitle("Dungeon Quest || The End");
       f.remove(f.getContentPane());
       f.removeMouseListener(f.getMouseListeners()[0]);
+		f.addKeyListener(new keyListen());
       f.setContentPane(e);
       f.validate();
       f.repaint();
 		
-		while(e.stillWaiting()){
+			//Wait. Program will end when ESCAPE key is pressed
+		while(true){
 			System.out.print("");
 		}
-		
-		System.exit(0);
    }
    
    //--Static Utility Classes--//
@@ -137,6 +137,12 @@ public class DungeonQuest{
       
       public void keyTyped(KeyEvent e){}
       
-      public void keyPressed(KeyEvent e){}
+      public void keyPressed(KeyEvent e){
+			if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+				System.out.println("Pls");
+				System.exit(0);
+			}
+				System.out.println("Halp");
+		}
    }
 }

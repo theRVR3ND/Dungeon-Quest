@@ -1,6 +1,8 @@
 import java.awt.Graphics;
 import javax.swing.JPanel;
 import java.awt.event.KeyEvent;
+import java.awt.Font;
+import java.awt.Color;
 
 public class EndGame extends JPanel{
 
@@ -12,8 +14,10 @@ public class EndGame extends JPanel{
 	public EndGame(){
 		//names = new TextBox[DungeonQuest.p.numPlayers()];//One name for each player
 		names = new TextBox[1];
-		for(byte i = 0; i < names.length; i++)
+		for(byte i = 0; i < names.length; i++){
 			names[i] = new TextBox((byte)10);//Allow for max. 10-length names
+			names[i].setContents("Player " + (i + 1));
+		}
 		modInd = 0;
 	}
 	
@@ -24,15 +28,17 @@ public class EndGame extends JPanel{
 	public void paintComponent(Graphics g){
 		super.paintComponent(g);
 		//------//
-		System.out.println("K");
 		//Draw background
 		g.drawImage(DungeonQuest.loadImage("Menu/MenuScreen.png"), 0, 0, 1200, 750, null);
+		//Draw title
+		g.setFont(new Font("Pristina", Font.PLAIN, 48));
+		g.setColor(new Color(127, 0, 0));
+		g.drawString("The Legend Continues...", 100, 100);
 		//Draw names
-			//Set Font and Color
+			//Set Font
+		g.setFont(new Font("Pristina", Font.PLAIN, 36));
 		for(byte i = 0; i < names.length; i++)
-			names[i].draw(g, 100, i + 100 * 50);
-		//------//
-		repaint(0, 0, 1200, 750);
+			names[i].draw(g, 100, i * 100 + 200);
 	}
 	
 	//--Access--//
@@ -41,16 +47,23 @@ public class EndGame extends JPanel{
 	
 	//pre:
 	//post: Performs any actions needed based on key press
-	public void keyPress(int keyCode){
+	public void keyPress(KeyEvent e){
 		//Tab (and dab)
 			//Advance index of names[] which is being typed into
-		if(keyCode == KeyEvent.VK_TAB){
+		if(e.getKeyCode() == KeyEvent.VK_TAB){
 			modInd++;
 			if(modInd == names.length)
 				modInd = 0;
 		}
+		//Backspace
+		if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE)
+			names[modInd].remove();
 		//Add key char to current textbox (alphabetical chars only)
-			//All valid key codes (of alpha chars) are less than
+			//All valid key codes (of alpha chars) are less than or equal to 90
+		if(e.getKeyCode() < 90)
+			names[modInd].add(e.getKeyChar());
+		//Update any graphical changes
+		repaint(0, 0, 1200, 750);
 	}
 	
 	//--TextBox Class--//
@@ -60,7 +73,6 @@ public class EndGame extends JPanel{
 	private class TextBox{
 	
 		char[] text;			//Holds chars for textbox
-		final byte size;		//Max number of chars stored
 		byte onInd;				//Number of chars in textBox
 	
 		//--Initialize--//
@@ -70,8 +82,9 @@ public class EndGame extends JPanel{
 					which can be entered in text box
 		*/
 		public TextBox(byte size){
-			this.size = size;
 			text = new char[size];
+			while(size > 0)
+				text[--size] = '\u0000';
 		}
 		
 		//--Graphics--//
@@ -87,7 +100,11 @@ public class EndGame extends JPanel{
 		//pre:
 		//post: Returns string of all chars currently in textbox
 		public String toString(){
-			return new String(text, 0, onInd);
+			String ret = "";
+			for(byte i = 0; i < onInd; i++)
+				if(text[i] != '\u0000')
+					ret += text[i];
+			return ret;
 		}
 		
 		//--Mutate--//
@@ -104,9 +121,18 @@ public class EndGame extends JPanel{
 		//pre:
 		//post: Removes last char in text box, if any
 		public void remove(){
-			if(onInd != 0){
-				text[onInd] = '\u0000';
-				onInd--;
+			if(onInd != 0)
+				text[--onInd] = '\u0000';
+		}
+		
+		//pre:
+		//post: Sets as much of contents as possible to nameIn
+		public void setContents(String nameIn){
+			for(byte i = 0; i < text.length; i++){
+				if(nameIn.length() == i)
+					return;
+				text[i] = nameIn.charAt(i);
+				onInd = i;
 			}
 		}
 	}

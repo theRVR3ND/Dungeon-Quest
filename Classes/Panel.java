@@ -111,16 +111,25 @@ public class Panel extends JPanel{
 		for(Monster m : monsters)
 			m.draw(g);
       
+		//Draw out current hero info
+		g.setFont(new Font("Pristina", Font.PLAIN, 35));
+		g.setColor(new Color(127, 0, 0));
+		if(players[turnInd] != null){
+			g.drawString(players[turnInd].getName(), boardX + 800, boardY + 20);
+				//Draw out health
+			for(byte i = 0; i < players[turnInd].getHealth(); i++){
+				BufferedImage heart = DungeonQuest.loadImage("Heros/HealthHeart.png");
+				g.drawImage(heart, boardX + 800 + 20 * i, boardY + 40, null);
+			}
+		}
+		
 		//Draw message
 		if(message != null){
 			messageUpdates--;
 			if(messageUpdates <= 30){
 				double fade = (30 - messageUpdates) / 30.0;//Make message fade as it updates more and more
 				g.setColor(new Color((float)(127.0 / 255), 0, 0, 1 - (float)fade));
-			}else{
-				g.setColor(new Color(127, 0, 0));
 			}
-			g.setFont(new Font("Pristina", Font.PLAIN, 35));
          //Split message with carriage return (if present), draw with seperate line each time
          if(message.indexOf("\n") < 0){//If no carriage returns present
             g.drawString(message, boardX + 800, boardY + 600);
@@ -165,9 +174,9 @@ public class Panel extends JPanel{
 		//Draw stuff for combat
 		if(inCombat && entitiesDoneGliding){
 			//Draw clickable options for Melee, Ranged, and Magic attacks
-			g.drawImage(DungeonQuest.loadImage("Board/MeleeIcon.png"), boardX + 810, boardY, null);
-			g.drawImage(DungeonQuest.loadImage("Board/RangeIcon.png"), boardX + 870, boardY, null);
-			g.drawImage(DungeonQuest.loadImage("Board/MagicIcon.png"), boardX + 930, boardY, null);
+			g.drawImage(DungeonQuest.loadImage("Board/MeleeIcon.png"), boardX + 810, boardY + 70, null);
+			g.drawImage(DungeonQuest.loadImage("Board/RangeIcon.png"), boardX + 870, boardY + 70, null);
+			g.drawImage(DungeonQuest.loadImage("Board/MagicIcon.png"), boardX + 930, boardY + 70, null);
 		}
 		
       /*
@@ -182,14 +191,14 @@ public class Panel extends JPanel{
 	         players[i].getY() < boardY - 10 || players[i].getY() > boardY + 590){
 				setMessage(players[i].getName() + " leaves the Dungeon\nwith " + 
 							  players[i].getTreasure() + " gold...");
+							  
 				//If Hero is killed
 			}else if(players[i].getHealth() <= 0){
 				setMessage(players[i].getName() + " has been smitten...");
+				
 				//If sun has set
 			}else if(sun.isNight() && sun.doneGliding()){
-				players[i] = null;
-				entitiesDoneGliding = false;
-				continue;
+				//Do nothing
 			}else
 				continue;
 			//Do the following of either out of dungeon or dead
@@ -244,16 +253,18 @@ public class Panel extends JPanel{
 					//Perform trap card actions based on random gen
 					final byte gen = (byte)(Math.random() * 6 + 1);
 					if(gen == 1){//Explosion
-					
+						setMessage("Explosion");
 					}else if(gen == 2){//Crossfire trap
-					
+						setMessage("Crossfire");
 					}else if(gen == 3){//Poisonous gas
-					
+						setMessage("Poisonous Gas");
 					}else if(gen == 4){//Poisonous snakes
-					
+						setMessage("Poisonous Snakes");
 					}else{//if(gen > 4)	Trapdoor
-					
+						setMessage("Trapdoor");
 					}
+					char[] newTrap = {'t', '\u0000', '\u0000', '\u0000', '\u0000'};
+					grid.get(h.getRow(), h.getColumn()).setSides(newTrap);
 				}
 			}
 			repaint(0, 0, 1200, 750);
@@ -267,15 +278,6 @@ public class Panel extends JPanel{
 	//--End graphics--//
    
 	//--Access--//
-	
-	//pre:
-	//post: Returns true if at least one player is still in game
-	public boolean gameGoing(){
-		for(byte i = 0; i < players.length; i++)
-			if(players[i] != null)//At least one non-null player
-				return true;
-		return false;
-	}
 	
 	//pre:
 	//post: Returns number of total players (in or out of game)
@@ -341,7 +343,7 @@ public class Panel extends JPanel{
 			//--COMBAT--//
 			if(inCombat){
 				//Check for click on Melee, Ranged, or Magic attack icons
-				if(x >= boardX + 810 && x <= boardX + 980 && y >= boardY && y <= boardY + 50){
+				if(x >= boardX + 810 && x <= boardX + 980 && y >= boardY + 70 && y <= boardY + 120){
 					//Figure out which monster Hero is in combat with
 					byte combatInd = -1;
 					for(byte i = 0; i < monsters.size(); i++){
@@ -439,6 +441,10 @@ public class Panel extends JPanel{
 			//--End Obstacle Stuff--//
 		}
 		
+		//Ignore out of bound clicks
+		if(dir == -2)
+			return;
+		
 		//Do stuff based on direction of click (and tile contents)
 		if(dir == 0){					//Center action
 			centerAction(cR, cC);
@@ -467,9 +473,21 @@ public class Panel extends JPanel{
 	/*
 		post: Advances turnInd to match index of next non-null player in array players.
 				Also, advances sun token if player one has just gone. Further, call method 
-				to move monsters randomly.
+				to move monsters randomly. Called once per turn ONLY.
 	*/
 	private void advanceTurn(){
+		//If sun has "set", tell players that
+		if(sun.isNight())
+			setMessage("The sun sets, and Kalladra\nsmites all the remaining heroes");
+		//Check if all players are dead
+		for(byte i = 0; i < players.length; i++){
+			if(players[i] != null)
+				break;
+			//If all players are dead/out of game
+			if(i == players.length - 1)
+				//End game overall
+				DungeonQuest.e = new EndGame();
+		}
 		//Advancing turnInd
 		for(byte i = 0; i < players.length; i++){
 			turnInd++;
@@ -480,9 +498,6 @@ public class Panel extends JPanel{
 			if(players[turnInd] != null)
 				break;
 		}
-		//If sun has "set", tell players that
-		if(sun.isNight())
-			setMessage("The sun sets, and Kalladra\nsmites all the remaining heroes");
 		//Monster wandering
 		moveMonsters();
 	}
@@ -641,7 +656,7 @@ public class Panel extends JPanel{
 					}
 				}
 				//Create monster
-				if(createMonster && Math.random() < 0.25){
+				if(createMonster && Math.random() < 10.25){
 					byte gen = (byte)(Math.random() * 5);
 					String name;//Name of monster
 					if(gen == 0)
@@ -731,9 +746,20 @@ public class Panel extends JPanel{
 				treasure = 200;
 				
 			}else if(gen == 6){//Secret Door
-				setMessage("You find a secret door");
-				players[turnInd].setSecretDoor(true);
-			
+				//Make sure there is at least one wall, so a secret door could exist
+				boolean wallExists = false;
+				for(byte i = 1; i < 5; i++){
+					if(grid.get(r, c).getSides()[i] == 'W'){
+						wallExists = true;
+						break;
+					}
+				}
+				if(wallExists){
+					setMessage("You find a secret door");
+					players[turnInd].setSecretDoor(true);
+				}else{//If no wall exists in tile
+					setMessage("Nothing shows up...");
+				}
 			}else{//if(gen > 6){	Empty
 				setMessage("Nothing shows up...");
 			}

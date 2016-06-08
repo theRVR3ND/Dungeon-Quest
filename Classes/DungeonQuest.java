@@ -58,20 +58,20 @@ public class DungeonQuest{
 		
       //--The GAME--//
 		
-		while(p.gameGoing()){
+		while(e == null){
 			System.out.print("");
 		}
 		
 		//--End Game--//
 		
-		//Wait one second before changing screen to show end game
+		//Recycle panel (save dat memory)
+		p = null;
+		
+		//Wait half a second before changing screen to show end game
 		if(true){
 			final long start = System.currentTimeMillis();
-			while(start + 1000 > System.currentTimeMillis()){}
+			while(start + 500 > System.currentTimeMillis()){}
 		}
-		
-		e = new EndGame();
-		p = null;
 		
 		f.setTitle("Dungeon Quest || The End");
       f.remove(f.getContentPane());
@@ -114,6 +114,7 @@ public class DungeonQuest{
    
    //--Listener Classes--//
    
+	//Will be present in menu and actual game
    public static class mouseListen implements MouseListener{
       public void mouseEntered(MouseEvent e){}
       
@@ -132,17 +133,17 @@ public class DungeonQuest{
 		}
    }
    
+	//Key listener will only be added to JFrame during endgame
    public static class keyListen implements KeyListener{
-      public void keyReleased(KeyEvent e){}
+      public void keyReleased(KeyEvent event){}
       
-      public void keyTyped(KeyEvent e){}
+      public void keyTyped(KeyEvent event){}
       
-      public void keyPressed(KeyEvent e){
-			if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
-				System.out.println("Pls");
+      public void keyPressed(KeyEvent event){
+			if(event.getKeyCode() == KeyEvent.VK_ESCAPE)
 				System.exit(0);
-			}
-				System.out.println("Halp");
+			else
+				e.keyPress(event);
 		}
    }
 }

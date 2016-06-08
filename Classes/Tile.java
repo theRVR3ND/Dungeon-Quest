@@ -141,7 +141,10 @@ public class Tile{
 	//pre: sides.length == 5
 	//post: Sets sides to sides
 	public void setSides(char[] sides){
-		this.sides = sides;
+		for(byte i = 0; i < 5; i++){
+			if(sides[i] != '\u0000')
+				this.sides[i] = sides[i];
+		}
 		createTileImg();
 	}
 	
@@ -216,7 +219,8 @@ public class Tile{
 		}
 		
 		//Draw out center contents
-		if(sides[0] != 'T')//Add random rotation (0, 90, 180, 270) to all center contents EXCEPT trap
+			//Add random rotation (0, 90, 180, 270) to all center contents EXCEPT trap
+		if(sides[0] != 'T' && sides[0] != 't')
 			tileImg.rotate(Math.toRadians((int)(Math.random() * 4) * 90), 30, 30);
 		tileImg.drawImage(DungeonQuest.loadImage("Tiles/" + getName(sides[0]) + ".png"), null, 20, 20);
 	}
@@ -234,6 +238,8 @@ public class Tile{
 			case('P'): return "PORTCULLIS";
 			
 			case('T'): return "TRAP";
+			
+			case('t'): return "TRAP";
 			
 			case('I'): return "INKYHOLE";
 			

@@ -148,6 +148,12 @@ public class Tile{
 		createTileImg();
 	}
 	
+	//pre: 0 <= side < 5
+	//post: Sets sides[side] to set
+	public void setSide(char set, byte side){
+		sides[side] = set;
+	}
+	
    //--Helper--//
    
 	//pre: sides has been initialized

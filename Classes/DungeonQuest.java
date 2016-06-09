@@ -81,7 +81,7 @@ public class DungeonQuest{
       f.validate();
       f.repaint();
 		
-			//Wait. Program will end when ESCAPE key is pressed
+			//Wait. Program will end when ESCAPE key is pressed.
 		while(true){
 			System.out.print("");
 		}
@@ -141,7 +141,7 @@ public class DungeonQuest{
       
       public void keyPressed(KeyEvent event){
 			if(event.getKeyCode() == KeyEvent.VK_ESCAPE)
-				System.exit(0);
+				e.writeToFile();
 			else
 				e.keyPress(event);
 		}

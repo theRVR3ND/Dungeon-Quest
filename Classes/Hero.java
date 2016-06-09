@@ -10,7 +10,6 @@ public class Hero extends Entity{
    
 	private final byte maxLife;				//Max life of Hero. Equivallent to initial life.
 	private boolean alignEdge;					//Should Hero graphically not move to center of tile?
-	private int treasure;						//Amount of treasure player has
    private byte numSearches;              //Number of consecutive searches this hero has performed
 	private boolean secretDoor;				//Has Hero found a secret door?
    private final byte strength,           //Hero's might and stamina
@@ -22,19 +21,6 @@ public class Hero extends Entity{
                         flavorText;       //A bit of the Hero's personality
    
    //--Initialize--//
-   
-   public Hero(){
-		super();
-		treasure = 0;
-		maxLife = super.getHealth();
-		secretDoor = false;
-      strength = 0;
-      agility = 0;
-      armor = 0;
-      luck = 0;
-      specialAbility = "";
-      flavorText = "";
-   }
 	
 	//ARGS: name is valid name of file (.png and .txt) in "Heros" folder
 	public Hero(String name){
@@ -43,7 +29,7 @@ public class Hero extends Entity{
 		//Read in text file of player stats
 		Scanner input;
 		byte[] stats = new byte[5];
-		String[] text = new String[3];
+		String[] text = new String[2];
 		try{
 			input = new Scanner(new File(DungeonQuest.getDirectory() + "Resources/Heros/" + super.getName() + ".txt"));
 			//Loading numerical stats
@@ -56,7 +42,7 @@ public class Hero extends Entity{
 			}
 			input.nextLine();
 			//Loading in string info
-			for(byte i = 0; i < 3; i++){
+			for(byte i = 0; i < 2; i++){
 				if(! input.hasNextLine()){
 					text[i] = "";
 					continue;
@@ -68,8 +54,8 @@ public class Hero extends Entity{
 			System.exit(1);
 		}
 		
-      specialAbility = 	text[1];
-      flavorText = 		text[2];
+      specialAbility = 	text[0];
+      flavorText = 		text[1];
 		
       super.setHealth(stats[0]);
 		secretDoor = false;
@@ -78,27 +64,6 @@ public class Hero extends Entity{
       armor = 		stats[3];
       luck = 		stats[4];
 		maxLife = super.getHealth();
-		treasure = 0;
-   }
-   
-   
-   /*
-		ARGS: stats is all numerical statistics. text contains all text.
-				stats.length == 5, text.length == 2
-	*/
-   public Hero(byte[] stats, String[] text){
-		super(text[0]);
-      specialAbility = 	text[1];
-      flavorText = 		text[2];
-		
-      super.setHealth(stats[0]);
-		secretDoor = false;
-      strength = 	stats[1];
-      agility = 	stats[2];
-      armor = 		stats[3];
-      luck = 		stats[4];
-		maxLife = super.getHealth();
-		treasure = 0;
    }
    
    //--Graphics--//
@@ -155,12 +120,6 @@ public class Hero extends Entity{
 	//post: Returns value of a random attack on monster
 	public byte getAttack(){
 		return (byte)(Math.random() * strength);
-	}
-	
-	//pre:
-	//post: Returns treasure which hero has accquired
-	public int getTreasure(){
-		return treasure;
 	}
    
    //pre: 
@@ -236,14 +195,6 @@ public class Hero extends Entity{
    public void searched(){
       numSearches++;
    }
-   
-	//pre:
-	//post:
-	public void addTreasure(int i){
-		treasure += i;
-		if(treasure < 0)
-			treasure = 0;
-	}
 	
    //pre:
    //post: Changes health value by change

@@ -6,13 +6,13 @@ import java.awt.image.BufferedImage;
 
 public class Menu extends JPanel{
 	
-   private String[] heroNames = {"Challara",       //All hero's names
-                                 "Gherinn", 
-                                 "Hugo", 
-                                 "Krutzbeck", 
-                                 "Lindel", 
-                                 "Tatianna"};
-   private byte[] charInd;                         /*
+   private final String[] heroNames = {"Challara and Brightblaze",		//All hero's names
+                                 		"Brother Gherinn", 
+                                 		"Hugo the Glorious", 
+                                 		"Krutzbeck", 
+                                 		"Lindel", 
+                                 		"Tatianna"};
+   private byte[] heroInd;                         /*
                                                       Indexes of character (in heroNames) assigned
                                                       to each player button
                                                    */
@@ -40,21 +40,23 @@ public class Menu extends JPanel{
 		buttons[4] = new Button(buttonImgs.getSubimage(520, 0, 130, 60), 1000, 600);
       
       //Assign random hero to each player button (without duplication)
-      charInd = new byte[4];
+      heroInd = new byte[4];
+		for(byte i : heroInd)
+			i = -1;
+			//Each index of heroInd is assigned with an index from heroNames
       for(byte i = 0; i < 4; i++){
-         do{
-            charInd[i] = (byte)(Math.random() * heroNames.length);
-         }while(heroNames[charInd[i]] == null);
-         heroNames[charInd[i]] = null;//Make sure we don't use same player again
+			attempt:
+				while(true){
+					final byte randGen = (byte)(Math.random() * 6);//Index in heroNames assigned to button
+					//Make sure same hero is not assigned to different button
+					for(byte j = 0; j < i; j++)
+						if(heroInd[j] == randGen)
+							continue attempt;
+					//If randGen does not exist in any index in heroInd
+					heroInd[i] = randGen;
+					break;
+				}
       }
-      
-      //Reset heroNames for later hero image loading
-      heroNames[0] = "Challara";
-      heroNames[1] = "Gherinn";
-      heroNames[2] = "Hugo";
-      heroNames[3] = "Krutzbeck"; 
-      heroNames[4] = "Lindel"; 
-      heroNames[5] = "Tatianna";
    }
    
    //--Graphics--//
@@ -72,7 +74,7 @@ public class Menu extends JPanel{
 		for(byte i = 0; i < 4; i++){
 			buttons[i].draw(g);
          if(buttons[i].isDown()){//If button is down, draw hero assigned to it underneath
-            String name = heroNames[charInd[i]];
+            String name = heroNames[heroInd[i]];
             g.drawImage(DungeonQuest.loadImage("Menu/" + name + ".png"), 
                         buttons[i].getX() + 10, buttons[i].getY() + 80, null);
          }
@@ -107,7 +109,7 @@ public class Menu extends JPanel{
             byte namesInd = 0;
             for(byte i = 0; i < 4; i++){
                if(buttons[i].isDown())
-                  names[namesInd++] = heroNames[charInd[i]];
+                  names[namesInd++] = heroNames[heroInd[i]];
             }
             DungeonQuest.p = new Panel(names);//Create panel with names of all heros being used
 			}

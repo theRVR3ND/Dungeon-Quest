@@ -11,6 +11,7 @@ public class Panel extends JPanel{
 	
 	private final BufferedImage bgImg;						//Background image
 	private Hero[] players;										//All players in the game
+	private int[] treasure;										//Amount of treasure for each Hero
 	private byte turnInd;										//Index of player (in players) who has the turn
 	private SparseMatrix<Tile> grid;							//Matrix for all tile spots on board. Basically the game board.
 	private String message;										//Any text to display to board
@@ -39,6 +40,7 @@ public class Panel extends JPanel{
 		sun = new SunToken();
   		turnInd = 0;
 		lastUpdate = 0;
+		treasure = new int[playerNames.length];
 		
       //Create heros based on names from menu
       players = new Hero[playerNames.length];
@@ -124,6 +126,7 @@ public class Panel extends JPanel{
 		}
 		
 		//Draw message
+		g.setFont(new Font("Pristina", Font.PLAIN, 30));
 		if(message != null){
 			messageUpdates--;
 			if(messageUpdates <= 30){
@@ -133,21 +136,20 @@ public class Panel extends JPanel{
          //Split message with carriage return (if present), draw with seperate line each time
          if(message.indexOf("\n") < 0){//If no carriage returns present
             g.drawString(message, boardX + 800, boardY + 600);
-         }else{//If at least one carriage return
+				
+			//If at least one carriage return
+         }else{
             byte lineNum = 0;//Line of text we are one (for drawing)
             byte lastReturn = 0;//Index of carriage return per line
             do{
                //Draw each section between carriage returns, with 40 pixel vertical spacing
    			   g.drawString(message.substring(lastReturn, message.indexOf("\n", lastReturn + 1)), 
-                            boardX + 800, boardY + 560 + lineNum * 40);
+                            boardX + 800, boardY + 550 + lineNum * 40);
                lastReturn = (byte)message.indexOf("\n", lastReturn + 1);//Find next carriage return
                lineNum++;
-                  //If we have just drawn second to last section, draw last section and break
-               if(message.indexOf("\n", lastReturn + 1) < 0){
-                  g.drawString(message.substring(lastReturn), boardX + 800, boardY + 560 + lineNum * 40);
-                  break;
-               }
-            }while(lastReturn >= 0);
+            }while(lastReturn >= 0 && message.indexOf("\n", lastReturn + 1) >= 0);
+				//Draw last line section (it is not drawn in while loop)
+              g.drawString(message.substring(lastReturn), boardX + 800, boardY + 550 + lineNum * 40);
          }
          //"Delete" message if needed (reached end of updating cycle)
 			if(messageUpdates == 0)
@@ -190,15 +192,16 @@ public class Panel extends JPanel{
 	      if(players[i].getX() < boardX - 10 || players[i].getX() > boardX + 775 || 
 	         players[i].getY() < boardY - 10 || players[i].getY() > boardY + 590){
 				setMessage(players[i].getName() + " leaves the Dungeon\nwith " + 
-							  players[i].getTreasure() + " gold...");
+							  treasure[i] + " gold...");
 							  
 				//If Hero is killed
 			}else if(players[i].getHealth() <= 0){
 				setMessage(players[i].getName() + " has been smitten...");
+				treasure[i] = 0;//Player loses all treasure if killed
 				
 				//If sun has set
 			}else if(sun.isNight() && sun.doneGliding()){
-				//Do nothing
+				treasure[i] = 0;
 			}else
 				continue;
 			//Do the following of either out of dungeon or dead
@@ -263,8 +266,8 @@ public class Panel extends JPanel{
 					}else{//if(gen > 4)	Trapdoor
 						setMessage("Trapdoor");
 					}
-					char[] newTrap = {'t', '\u0000', '\u0000', '\u0000', '\u0000'};
-					grid.get(h.getRow(), h.getColumn()).setSides(newTrap);
+					//Trap is "triggered", will be reset later
+					grid.get(h.getRow(), h.getColumn()).setSide('t', (byte)0);
 				}
 			}
 			repaint(0, 0, 1200, 750);
@@ -372,16 +375,17 @@ public class Panel extends JPanel{
 					
 					//Check if monster has just been smitted
 					if(monsters.get(combatInd).getHealth() <= 0){
-						message += "\nand smites the " + monsters.get(combatInd).getName();//Add on to current message
+						message += " and\nsmites the " + monsters.get(combatInd).getName();//Add on to current message
 						monsters.remove(combatInd);
 						players[turnInd].setEdgeAlign(false);
 						inCombat = false;
+						advanceTurn();
 					}else{//If monster still alive
 						//Monster counter attack
 							//Damage hero
 						final byte damage = monsters.get(combatInd).getAttack();
 						players[turnInd].changeHealth((byte)(-damage));
-						message += "\n" + players[turnInd].getName() + " takes " + damage + " damage";
+						message += "\n" + players[turnInd].getName() + " takes\n" + damage + " damage";
 					}
 				}else{
 					//Check if player tried to escape monster
@@ -419,18 +423,18 @@ public class Panel extends JPanel{
 			}else{//Player chooses to try and cross obstacle
 				if(tileSide == 'C'){												//If crossing cave-in
 					if(Math.random() < 0){
-						setMessage("You trip, fall and die...");
+						setMessage(players[turnInd].getName() + "trips, falls and dies...");
 						players[turnInd].changeHealth((byte)(-100));
 					}else{
-						setMessage("You survive");
+						setMessage(players[turnInd].getName() + " survives");
 					}
 					
 				}else if(tileSide == 'H'){										//Leaping over hole
 					if(Math.random() < 0){
-						setMessage("You trip, fall and die...");
+						setMessage(players[turnInd].getName() + "trips, falls and dies...");
 						players[turnInd].changeHealth((byte)(-100));
 					}else{
-						setMessage("You survive");
+						setMessage(players[turnInd].getName() + " survives");
 					}
 					
 				}
@@ -486,7 +490,7 @@ public class Panel extends JPanel{
 			//If all players are dead/out of game
 			if(i == players.length - 1)
 				//End game overall
-				DungeonQuest.e = new EndGame();
+				DungeonQuest.e = new EndGame(treasure);
 		}
 		//Advancing turnInd
 		for(byte i = 0; i < players.length; i++){
@@ -524,12 +528,12 @@ public class Panel extends JPanel{
 		
 		//Check if hero is exiting dungeon
 		if(side == 'E'){//If exit (of the dungeon)
-			if(players[turnInd].getTreasure() > 0){
+			if(treasure[turnInd] > 0){
 				players[turnInd].move(moveR, moveC);//Make Hero glide out of dungeon like a magical unicorn
 				advanceTurn();
 				repaint(0, 0, 1200, 750);
 			}else
-				setMessage("You may not exit without\ntreasure...");
+				setMessage("Heros may not exit without\ntreasure...");
 			return;
 		}
 		
@@ -591,6 +595,10 @@ public class Panel extends JPanel{
 		}
 		
 		/* MOVE MUST BE VALID AT THIS POINT */
+	
+		//"Reset" trap if Hero is on one
+		if(grid.get(cR, cC).getSide((byte)0) == 't')
+			grid.get(cR, cC).setSide('T', (byte)0);
 	
 		//Tell turn hero to move
 		players[turnInd].move(moveR, moveC);
@@ -726,24 +734,24 @@ public class Panel extends JPanel{
          players[turnInd].searched();
          //Actual probability/searching
 			final byte gen = (byte)(Math.random() * 10 + 1);
-			short treasure = -1;//Treasure gained from searching, -1 if no treasure found
+			short gold = -1;//Treasure gained from searching, -1 if no treasure found
 			if(gen == 1){//Potion
 				setMessage("Potion");
 				
 			}else if(gen == 2){//Golden guineas
-				setMessage("You find 10 golden guineas");
-				treasure = 10;
+				setMessage(players[turnInd].getName() + "\nfinds 10 golden guineas");
+				gold = 10;
 				
 			}else if(gen == 3){//Giant centipede
 				setMessage("Giant Centipede");
 				
 			}else if(gen == 4){//Ring
-				setMessage("You find a ring worth 90\nguineas");
-				treasure = 90;
+				setMessage(players[turnInd].getName() + "\nfinds a ring worth 90 guineas");
+				gold = 90;
 				
 			}else if(gen == 5){//Jewellry
-				setMessage("You find jewellry worth\n200 guineas");
-				treasure = 200;
+				setMessage(players[turnInd].getName() + "\nfinds jewellry worth 200 guineas");
+				gold = 200;
 				
 			}else if(gen == 6){//Secret Door
 				//Make sure there is at least one wall, so a secret door could exist
@@ -755,7 +763,7 @@ public class Panel extends JPanel{
 					}
 				}
 				if(wallExists){
-					setMessage("You find a secret door");
+					setMessage(players[turnInd].getName() + " finds a secret door");
 					players[turnInd].setSecretDoor(true);
 				}else{//If no wall exists in tile
 					setMessage("Nothing shows up...");
@@ -764,15 +772,15 @@ public class Panel extends JPanel{
 				setMessage("Nothing shows up...");
 			}
 			
-			if(treasure != -1)
-				players[turnInd].addTreasure(treasure);
+			if(gold != -1)
+				treasure[turnInd] += gold;
 			
 		//Treasure room (draw treasure card)
 		}else if(cent == 'G'){
 			if(Math.random() <= 7.0 / 8){
 				final int gen = (int)(Math.random() * 45) * 10 + 100;//Treasure token
-				setMessage("The Dragon slumbers and you\ntake " + gen + " gold");
-				players[turnInd].addTreasure(gen);
+				setMessage("The Dragon slumbers and " + players[turnInd].getName() + "\ntakes " + gen + " gold");
+				treasure[turnInd] += gen;
 			}else{
 				setMessage("Kalladra awakes and burns\n" + players[turnInd].getName() + " with Dragon Breath");
 				players[turnInd].changeHealth((byte)(-100));

@@ -1,22 +1,25 @@
-import java.awt.Graphics;
 import javax.swing.JPanel;
 import java.awt.event.KeyEvent;
+import java.awt.Graphics;
 import java.awt.Font;
 import java.awt.Color;
+import java.util.Scanner;
+import java.io.File;
 
 public class EndGame extends JPanel{
 
 	private TextBox[] names;				//For each player to enter their name
+	private int[] treasure;					//Gold points earned by each hero
 	private byte modInd;						//Index of text box in names[] which is being modified
 
 	//--Initialize--//
 	
-	public EndGame(){
-		//names = new TextBox[DungeonQuest.p.numPlayers()];//One name for each player
-		names = new TextBox[1];
+	public EndGame(int[] treasure){
+		this.treasure = treasure;
+		names = new TextBox[DungeonQuest.p.numPlayers()];//One name for each player
 		for(byte i = 0; i < names.length; i++){
 			names[i] = new TextBox((byte)10);//Allow for max. 10-length names
-			names[i].setContents("Player " + (i + 1));
+			names[i].setContents("Player " + (char)(i + 1));
 		}
 		modInd = 0;
 	}
@@ -26,46 +29,88 @@ public class EndGame extends JPanel{
 	//pre: g != null
 	//post: Draws all textboxes and stuff
 	public void paintComponent(Graphics g){
+		//Wait 1 second until repainting
+		if(true){
+			final long startTime = System.currentTimeMillis();
+			while(System.currentTimeMillis() > startTime + 1000){
+				System.out.print("");
+			}
+		}
+		
 		super.paintComponent(g);
 		//------//
 		//Draw background
 		g.drawImage(DungeonQuest.loadImage("Menu/MenuScreen.png"), 0, 0, 1200, 750, null);
+		
 		//Draw title
 		g.setFont(new Font("Pristina", Font.PLAIN, 48));
 		g.setColor(new Color(127, 0, 0));
 		g.drawString("The Legend Continues...", 100, 100);
-		//Draw names
+		
+		//Draw names and other info
 			//Set Font
 		g.setFont(new Font("Pristina", Font.PLAIN, 36));
-		for(byte i = 0; i < names.length; i++)
-			names[i].draw(g, 100, i * 100 + 200);
+		g.drawString("Gold earned:", 450, 150);
+		for(byte i = 0; i < names.length; i++){
+			//Tell textbox to draw text cursor if needed
+			if(i == modInd)
+				names[i].draw(g, 100, i * 100 + 200, true);
+			else
+				names[i].draw(g, 100, i * 100 + 200, false);
+			//Draw out score of player
+			g.drawString(treasure[i] + "", 500, i * 100 + 200);
+		}
+		repaint(0, 0, 1200, 750);
 	}
 	
 	//--Access--//
+	
+	//pre:
+	//post: Returns file contents in String array form
+	public String[] readFile(){
+		try{
+			/*
+				Direct scanner to read from file at /Resources/wit etochi/k irets i
+																			  (Scores) & (Record) in Amharic
+			*/
+			Scanner input = new Scanner(new File(DungeonQuest.getDirectory() + "wit etochi/k irets i"));
+			
+		}catch(Exception e){
+		
+		}
+		return null;
+	}
 	
 	//--Mutate--//
 	
 	//pre:
 	//post: Performs any actions needed based on key press
 	public void keyPress(KeyEvent e){
-		//Tab (and dab)
+		//Enter
 			//Advance index of names[] which is being typed into
-		if(e.getKeyCode() == KeyEvent.VK_TAB){
+		if(e.getKeyCode() == KeyEvent.VK_ENTER){
 			modInd++;
 			if(modInd == names.length)
 				modInd = 0;
 		}
+		
 		//Backspace
-		if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE)
+		else if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE)
 			names[modInd].remove();
+			
 		//Add key char to current textbox (alphabetical chars only)
 			//All valid key codes (of alpha chars) are less than or equal to 90
-		if(e.getKeyCode() < 90)
+		else if(e.getKeyCode() < 90 && e.getKeyCode() != KeyEvent.VK_SHIFT)
 			names[modInd].add(e.getKeyChar());
-		//Update any graphical changes
-		repaint(0, 0, 1200, 750);
 	}
 	
+	//pre:
+	//post: Writes all player names and scores to text file and ends program
+	public void writeToFile(){
+		
+		System.exit(0);
+	}
+		
 	//--TextBox Class--//
 	
 	//A drawable textbox, which can hold chars
@@ -91,8 +136,11 @@ public class EndGame extends JPanel{
 		
 		//pre: g != null
 		//post: Draws textbox at (x, y) in graphics
-		public void draw(Graphics g, int x, int y){
-			g.drawString(toString(), x, y);
+		public void draw(Graphics g, int x, int y, boolean drawCursor){
+			if(drawCursor)
+				g.drawString(toString() + "|", x, y);
+			else
+				g.drawString(toString(), x, y);
 		}
 		
 		//--Access--//

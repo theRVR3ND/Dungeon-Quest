@@ -26,7 +26,7 @@ public class Panel extends JPanel{
 	private boolean inCombat;									//Is there combat going on?
 	
 	//--FPS Control Stuff--//								 
-	private final byte MAX_FPS = 30;							//Maximum frame updates per second
+	private final byte MAX_FPS = 60;							//Maximum frame updates per second
 	private long lastUpdate;									//Last time (in milliseconds) paintComponent() executed
 	
    //--Initialize--//
@@ -195,7 +195,6 @@ public class Panel extends JPanel{
 							  
 				//If Hero is killed
 			}else if(players[i].getHealth() <= 0){
-				setMessage(players[i].getName() + " has been smitten...");
 				treasure[i] = 0;//Player loses all treasure if killed
 				
 				//If sun has set
@@ -434,7 +433,7 @@ public class Panel extends JPanel{
 			}else{//Player chooses to try and cross obstacle
 				if(tileSide == 'C'){												//If crossing cave-in
 					if(Math.random() * 3 + 3 > players[turnInd].getAgility()){
-						byte loss = (byte)((byte)(Math.random() * 4) * 100 + 200);
+						int loss = (byte)(Math.random() * 4) * 100 + 200;
 						setMessage("You trip and fall,\nlosing " + loss + " treasure");
 						//Player losing their treasure
 						if(treasure[turnInd] >= loss)
@@ -453,7 +452,7 @@ public class Panel extends JPanel{
 						players[turnInd].changeHealth((byte)(-100));
 						return;
 					}else{
-						setMessage("You survives");
+						setMessage("You survive");
 					}
 				}
 			}
@@ -735,6 +734,10 @@ public class Panel extends JPanel{
 		final char cent = grid.get(r, c).getSides()[0];
 		//Solid ground or rotating room (search)
 		if(cent == 'S'){
+			//Do not allow hero to search starting room
+				//If in a corner
+			if((r == 0 && c == 0) || (r == 0 && c == 12) || (r == 9 && c == 0) || (r == 9 && c == 12))
+				return;
          //Check if hero has searched twice consecutively in current room without moving
          if(players[turnInd].getNumSearches() >= 2){
 				//Check if no moves are actually possible
@@ -771,7 +774,7 @@ public class Panel extends JPanel{
 				
 			}else if(gen == 3){																							//Giant centipede
 				byte dam = (byte)(Math.random() * 3 + 4);
-				setMessage("A Giant Centipede attacks you and does " + dam + "\ndamage");
+				setMessage("A Giant Centipede attacks you and\ndoes " + dam + " damage");
 				players[turnInd].changeHealth((byte)(-dam));
 				
 			}else if(gen == 4){																							//Ring

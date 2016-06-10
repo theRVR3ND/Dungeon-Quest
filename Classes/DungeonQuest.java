@@ -141,7 +141,7 @@ public class DungeonQuest{
       
       public void keyPressed(KeyEvent event){
 			if(event.getKeyCode() == KeyEvent.VK_ESCAPE)
-				e.writeToFile();
+				e.close();
 			else
 				e.keyPress(event);
 		}

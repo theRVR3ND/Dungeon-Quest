@@ -50,13 +50,13 @@ public abstract class Entity{
 	public void draw(String imgDir, Graphics g){
 		//Glide towards wanted location
    	if(x < c * 60 + Panel.boardX + 22)
-			x++;
+			x += 1;
 		else if(x > c * 60 + Panel.boardX + 22)
-			x--;
+			x -= 1;
    	if(y < r * 60 + Panel.boardY + 17)
-			y++;
+			y += 1;
 		else if(y > r * 60 + Panel.boardY + 17)
-			y--;
+			y -= 1;
 			
 		g.drawImage(DungeonQuest.loadImage(imgDir + name + ".png"), x, y, null);
    }

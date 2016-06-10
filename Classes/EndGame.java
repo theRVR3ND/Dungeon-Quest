@@ -4,6 +4,8 @@ import java.awt.Graphics;
 import java.awt.Font;
 import java.awt.Color;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.io.PrintStream;
 import java.io.File;
 
 public class EndGame extends JPanel{
@@ -11,7 +13,8 @@ public class EndGame extends JPanel{
 	private TextBox[] names;				//For each player to enter their name
 	private int[] treasure;					//Gold points earned by each hero
 	private byte modInd;						//Index of text box in names[] which is being modified
-
+	private String[] previousScores;		//Scores from previous games read from text file
+	
 	//--Initialize--//
 	
 	public EndGame(int[] treasure){
@@ -22,6 +25,7 @@ public class EndGame extends JPanel{
 			names[i].setContents("Player " + (char)(i + 1));
 		}
 		modInd = 0;
+		previousScores = readScores();
 	}
 	
 	//--Graphics--//
@@ -29,14 +33,6 @@ public class EndGame extends JPanel{
 	//pre: g != null
 	//post: Draws all textboxes and stuff
 	public void paintComponent(Graphics g){
-		//Wait 1 second until repainting
-		if(true){
-			final long startTime = System.currentTimeMillis();
-			while(System.currentTimeMillis() > startTime + 1000){
-				System.out.print("");
-			}
-		}
-		
 		super.paintComponent(g);
 		//------//
 		//Draw background
@@ -60,26 +56,9 @@ public class EndGame extends JPanel{
 			//Draw out score of player
 			g.drawString(treasure[i] + "", 500, i * 100 + 200);
 		}
-		repaint(0, 0, 1200, 750);
 	}
 	
 	//--Access--//
-	
-	//pre:
-	//post: Returns file contents in String array form
-	public String[] readFile(){
-		try{
-			/*
-				Direct scanner to read from file at /Resources/wit etochi/k irets i
-																			  (Scores) & (Record) in Amharic
-			*/
-			Scanner input = new Scanner(new File(DungeonQuest.getDirectory() + "wit etochi/k irets i"));
-			
-		}catch(Exception e){
-		
-		}
-		return null;
-	}
 	
 	//--Mutate--//
 	
@@ -102,15 +81,72 @@ public class EndGame extends JPanel{
 			//All valid key codes (of alpha chars) are less than or equal to 90
 		else if(e.getKeyCode() < 90 && e.getKeyCode() != KeyEvent.VK_SHIFT)
 			names[modInd].add(e.getKeyChar());
+		
+		else
+			return;
+		
+		//If any changes to textboxes happened
+		repaint(0, 0, 1200, 750);
 	}
 	
 	//pre:
-	//post: Writes all player names and scores to text file and ends program
-	public void writeToFile(){
-		
+	//post: Calls for all scores to be written to text file and ends program
+	public void close(){
+		writeToFile();
 		System.exit(0);
 	}
-		
+	
+	//--Helper--//
+	
+	//pre:
+	//post: Writes all player names and scores to text file and ends program
+	private void writeToFile(){
+		/*
+			Prints scores in the form of:
+			NAME SCORE
+		*/
+		try{
+			System.setOut(new PrintStream(new File(DungeonQuest.getDirectory() + "Resources/wit etochi/k irets i.txt")));
+			for(byte i = 0; i < names.length; i++){
+				String line = names[i].toString() + " " +
+								  treasure[i];
+				System.out.println(line);
+			}
+			System.out.println("");//Add space between each block of scores
+		//If file we want to write to does not exist
+		}catch(Exception e){
+			//Try to create file
+			File create = new File(DungeonQuest.getDirectory() + "Resources/wit etochi/k irets i.txt");
+			try{
+				create.createNewFile();
+			}catch(Exception x){
+				//The brownie has hit the fan...
+				System.out.println("Unable to load or create " + DungeonQuest.getDirectory() + 
+										 "Resources/wit etochi/k irets i.txt");
+			}
+			System.exit(1);
+		}
+	}
+	
+	//pre:
+	//post: Returns file contents in String array form
+	private String[] readScores(){
+		try{
+			/*
+				Direct scanner to read from file at /Resources/wit etochi/k irets i
+																			  (Scores) & (Record) in Amharic
+			*/
+			Scanner input = new Scanner(new File(DungeonQuest.getDirectory() + "Resources/wit etochi/k irets i.txt"));
+			ArrayList<String> ret = new ArrayList<String>();
+			while(input.hasNextLine())
+				ret.add(input.nextLine());
+			return (String[])(ret.toArray());
+		}catch(Exception e){
+			System.out.println("Could not find " + DungeonQuest.getDirectory() + "Resources/wit etochi/k irets i.txt");
+		}
+		return null;
+	}
+	
 	//--TextBox Class--//
 	
 	//A drawable textbox, which can hold chars
@@ -138,7 +174,7 @@ public class EndGame extends JPanel{
 		//post: Draws textbox at (x, y) in graphics
 		public void draw(Graphics g, int x, int y, boolean drawCursor){
 			if(drawCursor)
-				g.drawString(toString() + "|", x, y);
+				g.drawString(toString() + "/", x, y);
 			else
 				g.drawString(toString(), x, y);
 		}

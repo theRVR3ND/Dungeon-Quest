@@ -162,22 +162,22 @@ public class Tile{
       //Generate center spot (hole, solid, cave-in, trap, dark inky hole) if not already generated
       if(sides[0] == '\0'){
          double gen = Math.random();
-  			if(gen < 0.4)       
+  			if(gen < 0.75)       
 				sides[0] = 'S';		//Solid
 				
-         else if(gen < 0.5)
+         else if(gen < 0.8)
             sides[0] = 'H';		//Hole
 				
-         else if(gen < 0.6)
+         else if(gen < 0.85)
             sides[0] = 'C';		//Cave-in
 				
-         else if(gen < 0.7)
+         else if(gen < 0.9)
             sides[0] = 'T';		//Trap
 				
-			else if(gen < 0.9)
+			else if(gen < 0.95)
 				sides[0] = 'R';		//Rotating room
 				
-         else//if(gen <= 1.00)
+         else//if(gen < 1.00)
             sides[0] = 'I';		//Inky hole
 					
       }
@@ -190,16 +190,16 @@ public class Tile{
 				}
 			
             double gen = Math.random();
-            if(gen <= 0.3)
+            if(gen < 0.3)
                sides[i] = 'W';	//Wall
          	
 				else if(gen < 0.7)
             	sides[i] = 'O';	//Open
 				        
-            else if(gen <= 0.8)
+            else if(gen < 0.9)
                sides[i] = 'D';	//Door
             
-            else//if(gen <= 1.00)
+            else//if(gen < 1.00)
                sides[i] = 'P';	//Portcullis
 			}
       }

@@ -2,6 +2,8 @@
 
 import javax.swing.JPanel;
 import java.awt.Graphics;
+import java.awt.Font;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 public class Menu extends JPanel{
@@ -67,16 +69,32 @@ public class Menu extends JPanel{
       super.paintComponent(g);
       //------//
 		//Draw background
-		g.drawImage(DungeonQuest.loadImage("Menu/MenuScreen.png"), 0, 0, 1200, 750, null);
+		g.drawImage(DungeonQuest.loadImage("Board/Board.png"), 0, 0, 1200, 750, null);
 		g.drawImage(DungeonQuest.loadImage("Menu/MenuTitle.png"), 106, 104, null);
 		
 		//By default draw four player selection buttons
 		for(byte i = 0; i < 4; i++){
 			buttons[i].draw(g);
-         if(buttons[i].isDown()){//If button is down, draw hero assigned to it underneath
+         if(buttons[i].isDown()){//If button is down, draw hero's image and name assigned to it underneath
             String name = heroNames[heroInd[i]];
+				//Draw image
             g.drawImage(DungeonQuest.loadImage("Menu/" + name + ".png"), 
-                        buttons[i].getX() + 10, buttons[i].getY() + 80, null);
+                        buttons[i].getX() + 15, buttons[i].getY() + 80, null);
+				//Draw name
+				g.setFont(new Font("Pristina", Font.PLAIN, 24));
+				g.setColor(new Color(127, 0, 0));
+					//Make name centered
+				byte numSpace = (byte)((22 - name.length()) / 2);
+				while(numSpace > 0){
+					name = " " + name;
+					numSpace--;
+				}
+				//Draw Challara's name differently (on two lines) since it is so long
+				if(name.startsWith("Challara")){
+					g.drawString("   Challara and", buttons[i].getX(), buttons[i].getY() + 310);
+					g.drawString("    Brightblaze", buttons[i].getX(), buttons[i].getY() + 340);
+				}else
+					g.drawString(name, buttons[i].getX(), buttons[i].getY() + 310);
          }
 		}
 		

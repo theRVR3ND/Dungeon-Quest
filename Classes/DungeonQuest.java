@@ -64,14 +64,14 @@ public class DungeonQuest{
 		
 		//--End Game--//
 		
-		//Recycle panel (save dat memory)
-		p = null;
-		
-		//Wait half a second before changing screen to show end game
+		//Wait 1 second before changing screen to show end game
 		if(true){
 			final long start = System.currentTimeMillis();
-			while(start + 500 > System.currentTimeMillis()){}
+			while(start + 1000 > System.currentTimeMillis()){}
 		}
+		
+		//Recycle panel (save dat memory)
+		p = null;
 		
 		f.setTitle("Dungeon Quest || The End");
       f.remove(f.getContentPane());
@@ -140,10 +140,7 @@ public class DungeonQuest{
       public void keyTyped(KeyEvent event){}
       
       public void keyPressed(KeyEvent event){
-			if(event.getKeyCode() == KeyEvent.VK_ESCAPE)
-				e.close();
-			else
-				e.keyPress(event);
+			e.keyPress(event);
 		}
    }
 }

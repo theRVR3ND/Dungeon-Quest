@@ -22,7 +22,7 @@ public class Hero extends Entity{
    
    //--Initialize--//
 	
-	//ARGS: name is valid name of file (.png and .txt) in "Heros" folder
+	//ARGS: name is valid name of file in "Heros" folder
 	public Hero(String name){
 		super(name);
 		
@@ -31,7 +31,7 @@ public class Hero extends Entity{
 		byte[] stats = new byte[5];
 		String[] text = new String[2];
 		try{
-			input = new Scanner(new File(DungeonQuest.getDirectory() + "Resources/Heros/" + super.getName() + ".txt"));
+			input = new Scanner(new File(DungeonQuest.getDirectory() + "Resources/Heros/" + super.getName()));
 			//Loading numerical stats
 			for(byte i = 0; i < 5; i++){
 				if(! input.hasNextByte()){
@@ -50,7 +50,7 @@ public class Hero extends Entity{
 				text[i] = input.nextLine();
 			}
 		}catch(Exception e){
-			System.out.println("Could not load " + DungeonQuest.getDirectory() + "Resources/Heros/" + super.getName() + ".txt");
+			System.out.println("Could not load " + DungeonQuest.getDirectory() + "Resources/Heros/" + super.getName());
 			System.exit(1);
 		}
 		

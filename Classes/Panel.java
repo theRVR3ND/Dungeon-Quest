@@ -118,15 +118,26 @@ public class Panel extends JPanel{
 		g.setColor(new Color(127, 0, 0));
 		if(players[turnInd] != null){
 			g.drawString(players[turnInd].getName(), boardX + 800, boardY + 20);
-				//Draw out health
-			for(byte i = 0; i < players[turnInd].getHealth(); i++){
-				BufferedImage heart = DungeonQuest.loadImage("Heros/HealthHeart.png");
-				g.drawImage(heart, boardX + 800 + 20 * i, boardY + 40, null);
+			//Draw out health
+			BufferedImage heart = DungeonQuest.loadImage("Heros/HealthHeart.png");
+				//Two rows need to be drawn
+			if(players[turnInd].getHealth() > 17){
+					//Top row
+				for(byte i = 0; i < 17; i++)
+					g.drawImage(heart, boardX + 800 + 20 * i, boardY + 40, null);
+					//Bottom row
+				for(byte i = 0; i < players[turnInd].getHealth() - 17; i++)
+					g.drawImage(heart, boardX + 800 + 20 * i, boardY + 70, null);
+					
+				//Only one row of hearts
+			}else{
+				for(byte i = 0; i < players[turnInd].getHealth(); i++)
+					g.drawImage(heart, boardX + 800 + 20 * i, boardY + 40, null);
 			}
 		}
 		
 		//Draw message
-		g.setFont(new Font("Pristina", Font.PLAIN, 30));
+		g.setFont(new Font("Pristina", Font.PLAIN, 28));
 		if(message != null){
 			messageUpdates--;
 			if(messageUpdates <= 30){
@@ -144,12 +155,12 @@ public class Panel extends JPanel{
             do{
                //Draw each section between carriage returns, with 40 pixel vertical spacing
    			   g.drawString(message.substring(lastReturn, message.indexOf("\n", lastReturn + 1)), 
-                            boardX + 800, boardY + 550 + lineNum * 40);
+                            boardX + 800, boardY + 560 + lineNum * 40);
                lastReturn = (byte)message.indexOf("\n", lastReturn + 1);//Find next carriage return
                lineNum++;
             }while(lastReturn >= 0 && message.indexOf("\n", lastReturn + 1) >= 0);
 				//Draw last line section (it is not drawn in while loop)
-              g.drawString(message.substring(lastReturn), boardX + 800, boardY + 550 + lineNum * 40);
+            g.drawString(message.substring(lastReturn), boardX + 800, boardY + 560 + lineNum * 40);
          }
          //"Delete" message if needed (reached end of updating cycle)
 			if(messageUpdates == 0)
@@ -256,25 +267,50 @@ public class Panel extends JPanel{
 					if(gen == 1){//Explosion
 						setMessage("An explosion rocks the room,");
 						//If hero's armor is weaker, do damage. If stronger armor, do no damage.
-						final byte explo = (byte)(Math.random() * 4 + 2);
+						final byte explo = (byte)(Math.random() * 4 + 8);
 						if(players[turnInd].getArmor() >= explo){
 							message += "\nbut your armor deflects it";
 						}else{
-							message += " and you take " + (explo - players[turnInd].getArmor()) + " damage";
-							players[turnInd].changeHealth((byte)(-(explo - players[turnInd].getArmor())));
+							message += "\nand you take " + (explo - players[turnInd].getArmor()) + " damage";
+							players[turnInd].changeHealth((byte)(players[turnInd].getArmor() - explo));
 						}
 						
 					}else if(gen == 2){//Crossfire trap
-						setMessage("Crossfire");
+						setMessage("Arrows shoot from the walls of the room");
+						//Test for agility
+						final byte shot = (byte)(Math.random() * 5 + 6);
+						if(players[turnInd].getAgility() >= shot){
+							message += "\nbut you dodge them";
+						}else{
+							message += "\nand you take " + (shot - players[turnInd].getAgility()) + " damage";
+							players[turnInd].changeHealth((byte)(-shot));
+						}
 						
 					}else if(gen == 3){//Poisonous gas
-						setMessage("Poisonous Gas");
+						final byte gas = (byte)(Math.random() * 5 + 4);
+						setMessage("Poisonous gas fills the room, and you\ntake " + gas + " damage");
 						
-					}else if(gen == 4){//Poisonous snakes
-						setMessage("Poisonous Snakes");
+					}else if(gen == 4){//Venomous snakes
+						setMessage("Venomous snakes fill the room");
+						//Test luck
+						final byte bite = (byte)(Math.random() * 4 + 5);
+						if(players[turnInd].getLuck() >= bite){
+							message += "\nbut they don't bite you";
+						}else{
+							message += "\nand you take " + (bite - players[turnInd].getLuck()) + " damage";
+							players[turnInd].changeHealth((byte)(-bite));
+						}
 						
 					}else{//if(gen > 4)	Trapdoor
-						setMessage("Trapdoor");
+						setMessage("A trapdoor opens beneath you");
+						//Test armor
+						final byte fall = (byte)(Math.random() * 5 + 5);
+						if(players[turnInd].getArmor() >= fall){
+							message += "\nbut your armor cushions the fall";
+						}else{
+							message += "\nand you take " + (fall - players[turnInd].getArmor()) + " fall damage";
+							players[turnInd].changeHealth((byte)(players[turnInd].getArmor() - fall));
+						}
 					}
 					//Trap is "triggered", will be reset later
 					grid.get(h.getRow(), h.getColumn()).setSide('t', (byte)0);
@@ -401,8 +437,11 @@ public class Panel extends JPanel{
 					//Check if player tried to escape monster
 					if(dir == heroDir){
 						//Try to escape monster
-						if(Math.random() < 0.7){//If unable to escape
-							final byte hurt = (byte)(3 * Math.random() + 2);
+						if(Math.random() < 0.2){//If unable to escape
+							final byte hurt = (byte)(3 * Math.random() + 3);
+							//If hero has just died, go to inCombat = false state
+							if(players[turnInd].getHealth() <= hurt)
+								inCombat = false;
 							players[turnInd].changeHealth((byte)(-hurt));
 							setMessage("You try to escape but you are\nblocked and lose " + hurt + " health");
 						}else{//If able to escape
@@ -434,25 +473,28 @@ public class Panel extends JPanel{
 				if(tileSide == 'C'){												//If crossing cave-in
 					if(Math.random() * 3 + 3 > players[turnInd].getAgility()){
 						int loss = (byte)(Math.random() * 4) * 100 + 200;
-						setMessage("You trip and fall,\nlosing " + loss + " treasure");
 						//Player losing their treasure
-						if(treasure[turnInd] >= loss)
+						if(treasure[turnInd] >= loss){
 							treasure[turnInd] -= loss;
-						else
+							setMessage("You trip and fall,\nlosing " + loss + " treasure");
+						}else{
 							treasure[turnInd] = 0;
+							setMessage("You trip and fall,\nlosing all of your treasure");
+						}
+						advanceTurn();
 						return;//Hero should not move because they could not cross obstacle
 					}else{
-						setMessage("You survive");
+						setMessage("You survive the crossing");
 					}
 					
 				}else if(tileSide == 'H'){										//Leaping over hole
 					if(Math.random() * 4 + 5 > players[turnInd].getLuck() ||
 						Math.random() * 4 > players[turnInd].getAgility()){
-						setMessage("You leap but do not reach the other side");
+						setMessage("You leap but do not reach the other\nside");
 						players[turnInd].changeHealth((byte)(-100));
 						return;
 					}else{
-						setMessage("You survive");
+						setMessage("You survive the jump");
 					}
 				}
 			}
@@ -602,7 +644,7 @@ public class Panel extends JPanel{
 			}else{
 				//If unable to move portcullis
 				if(Math.random() < 0.5){
-					setMessage("You are unable to lift the heavy grate...");
+					setMessage("You are unable to lift the heavy\ngrate...");
 				}else{
 					setMessage("The portcullis remains shut...");
 				}
@@ -683,7 +725,7 @@ public class Panel extends JPanel{
 				//Create monster
 				if(createMonster && Math.random() < 0.25){
 					byte gen = (byte)(Math.random() * 5);
-					String name;//Name of monster
+					String name;//Name/type of monster
 					if(gen == 0)
 						name = "Demon";
 					else if(gen == 1)

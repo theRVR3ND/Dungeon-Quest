@@ -135,6 +135,18 @@ public class Panel extends JPanel{
 					g.drawImage(heart, boardX + 800 + 20 * i, boardY + 40, null);
 			}
 		}
+			//Draw luck, armor, strength, agility if not in combat
+		if(! inCombat){
+			g.drawImage(DungeonQuest.loadImage("Board/StrengthIcon.png"), boardX + 800, boardY + 100, null);
+			g.drawImage(DungeonQuest.loadImage("Board/AgilityIcon.png"), boardX + 800, boardY + 150, null);
+			g.drawImage(DungeonQuest.loadImage("Board/ArmorIcon.png"), boardX + 800, boardY + 200, null);
+			g.drawImage(DungeonQuest.loadImage("Board/LuckIcon.png"), boardX + 800, boardY + 250, null);
+			
+			g.drawString(players[turnInd].getStrength() + "", boardX + 850, boardY + 120);
+			g.drawString(players[turnInd].getAgility() + "", boardX + 850, boardY + 170);
+			g.drawString(players[turnInd].getArmor() + "", boardX + 850, boardY + 220);
+			g.drawString(players[turnInd].getLuck() + "", boardX + 850, boardY + 270);
+		}
 		
 		//Draw message
 		g.setFont(new Font("Pristina", Font.PLAIN, 28));

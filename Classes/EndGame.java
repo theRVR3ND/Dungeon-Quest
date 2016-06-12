@@ -37,12 +37,14 @@ public class EndGame extends JPanel{
 		super.paintComponent(g);
 		//------//
 		//Draw background
-		g.drawImage(DungeonQuest.loadImage("Menu/MenuScreen.png"), 0, 0, 1200, 750, null);
+		g.drawImage(DungeonQuest.loadImage("Board/Board.png"), 0, 0, 1200, 750, null);
 		
 		//Draw title
 		g.setFont(new Font("Pristina", Font.PLAIN, 48));
 		g.setColor(new Color(127, 0, 0));
 		g.drawString("The Legend Continues...", 100, 100);
+		if(previousScores.length != 0)
+			g.drawString("Previous Explorers:", 700, 140);
 		
 		//Draw names and other info
 			//Set Font
@@ -60,8 +62,11 @@ public class EndGame extends JPanel{
 		
 		//Draw previous scores
 		for(byte i = 0; i < previousScores.length; i++){
-			if(previousScores[i] != null)
-				g.drawString(previousScores[i].toString(), 600, i * 50 + 200);
+			if(previousScores[i] != null){
+				g.drawString(previousScores[i].getName(), 700, i * 50 + 200);
+				g.drawString(previousScores[i].getScore() + "", 950, i * 50 + 200);
+			}else
+				break;
 		}
 	}
 	
@@ -294,6 +299,12 @@ public class EndGame extends JPanel{
 		}
 		
 		//--Access--//
+		
+		//pre:
+		//post: Returns name
+		public String getName(){
+			return name;
+		}
 		
 		//pre:
 		//post: Returns score
